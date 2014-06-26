@@ -106,6 +106,12 @@ class StockAPIViewSet(ModelViewSet):
 			
 		return Response(serializers.ApplicationSerializer(res).data)		
 		
+	@action(methods = ['GET'])
+	def data(self, request, *args, **kwargs):
+		stock = self.get_object()
+		data = stock.logs.values('created_time', 'price').order_by('-created_time')
+		return Response(data)
+		
 	@action(methods = ['POST'],permission_classes = [HasStock])
 	def buy(self, request, *args, **kwargs):
 		return self.apply(request, models.Application.BUY, *args, **kwargs)

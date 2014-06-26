@@ -9,6 +9,7 @@
 	</div>
 </div>
 <div class="tab-content">
+	{% block tab_content %}
 	<div class="tab-pane fade in active" id="main">
 		<div class="panel panel-default panel-mese2014">
 			<div class="panel-heading">最新申请&nbsp;<button class="btn btn-link" id="refreshApplications">刷新</button></div>
@@ -91,6 +92,7 @@
 			</form>
 		</div>
 	</div>
+	{% endblock %}
 </div>
 {% endblock %}
 {% block sidebar %}
@@ -101,9 +103,11 @@
 未持有该股票
 {% endif %}
 </div>
+{% block sidebar_menu %}
 <ul class="nav nav-pills nav-stacked nav-utinfo">
 	<li><a href="#op" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>操作</a></li>
 </ul>
+{% endblock %}
 {% endblock %}
 {% block extra_script %}
 <script type="text/javascript">
@@ -129,7 +133,8 @@ $('a[href="#op"]').one('show.bs.tab', function(){
 	});
 	$form.find("input[type=submit]").click(function(){
 		var $this = $(this);
-		if (!$form.validate().checkForm()) return false;
+		$form.validate();
+		if (!$form.valid()) return false;
 		API.url("stocks").id(uid).url($this.attr('name')).post($form.serializeObject())
 		.ok(function(data){
 		});

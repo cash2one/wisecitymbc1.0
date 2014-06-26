@@ -130,7 +130,6 @@
 		<div class="tab-content">
 			<div class="tab-pane fade" id="tmlog">
 				<ul class="list-group mese2014-list-group" id="tmlogsContainer">
-				</div>
 				<div class="pager">
 					<button class="btn btn-link pull-left" id="tmlogPrevBtn">上一页</button>
 					<button class="btn btn-link pull-right" id="tmlogNextBtn">下一页</button>
@@ -244,6 +243,7 @@ $("a[href='#tmlog']").one('show.bs.tab', function(){
 	});
 });
 $("a[href='#tm']").one('show.bs.tab',function(){
+	//$("#tmlogPrevBtn #tmlogNextBtn").hide();
 	$("a[href='#tmop']").click();
 	$("#transferCaptchaImg").captcha();
 	var $form = $("#transferForm"), $result = $("#transferResult").hide(), $text = $("#transferText");
