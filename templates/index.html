@@ -114,6 +114,19 @@
 	  })
 	</script>
     {% endblock %}
+		<script>
+			$(function(){
+				toastr.options.timeOut = 0;
+				var timeId = setTimeout(function(){
+					API.url("notifications").get().ok(function(data){
+						$(data.results).each(function(){
+							toastr.info(this.message, "系统消息");
+						});
+					});
+					timeId = setTimeout(timeId);
+				}, 10000);
+			});
+		</script>
    {% block extra_script %}{%endblock%}
   </body>
 </html>

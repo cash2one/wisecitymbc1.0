@@ -6,7 +6,147 @@
 		<h3><a href="#main" data-toggle="pill">{{object.display_name}}</a></h3>
 	</div>
 	<div class="col-md-4">
-		<h4>�ּ�: {{object.current_price}}</h4>
+		<h4>已有资金：{{object.total_money}}</h4>
+	</div>
+	{% if object.published %}
+	<div class="col-md-4">
+		<h4>当前回报率：{{object.return_rate}}%</h4>
+	</div>
+	{% endif %}
+</div>
+<div class="container">
+	<div class="panel panel-default panel-mese2014">
+		<div class="panel-heading">申购条件</div>
+	</div>
+	<table class="table">
+		<thead>
+			<th>初始规模</th>
+			<th>基础回报率</th>
+			<th>预期回报率</th>
+			<th>发布时间</th>
+			<th>运行时间</th>
+		</thead>
+		<tbody>
+			<tr>
+				<th>￥{{object.initial_money}}</th>
+				<th>{{object.min_return_rate}}%</th>
+				<th>{{object.max_return_rate}}%</th>
+				<th>{{object.published_time}}</th>
+				<th>{{object.lasted_time}}</th>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div class="tab-content">
+	<div class="tab-pane fade in" id="buy">
+		<div class="col-md-6 col-md-offset-3">
+			<form role="form" id="buyForm" class="horizontal-form">
+				<div class="form-group">
+					<label class="col-sm-3 form-label" for="opPrice">资金</label>
+					<div class="col-sm-9">
+						<input id="opPrice" type="text" name="money" class="form-control form-login">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
+					<div class="col-sm-4">
+						<input type="text" name="captcha" class="form-control">
+					</div>
+					<div class="col-md-5">
+						<img name="captcha" class="pull-right"/>
+					</div>	
+				</div>
+				<div class="form-group">
+					<div class="col-sm-10 col-sm-offset-1">
+						<input type="submit"class="btn btn-login" value="确认">
+					</div>					
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="tab-pane fade in" id="ransom">
+		<div class="col-md-6 col-md-offset-3">
+			<form role="form" id="ransomForm" class="horizontal-form">
+				<div class="form-group">
+					<label class="col-sm-3 form-label" for="opPrice">金额</label>
+					<div class="col-sm-9">
+						<input id="opPrice" type="text" name="money" class="form-control form-login">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
+					<div class="col-sm-4">
+						<input type="text" name="captcha" class="form-control">
+					</div>
+					<div class="col-md-5">
+						<img name="captcha" class="pull-right"/>
+					</div>	
+				</div>
+				<div class="form-group">
+					<div class="col-sm-10 col-sm-offset-1">
+						<input type="submit"class="btn btn-login" value="确认">
+					</div>					
+				</div>
+			</form>
+		</div>
 	</div>
 </div>
+{% endblock %}
+{% block sidebar %}
+{% if object.published and object.fund_type == "open" or not object.published and user.profile.info.account_type != "media" %}
+<ul class="nav nav-pills nav-stacked nav-utinfo">
+	<li><a href="#buy" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请购买</a></li>
+	<li><a href="#ransom" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请赎回</a></li>
+</ul>
+{% endif %}
+{% endblock %}
+{% block extra_script %}
+<script type="text/javascript">
+$(function(){
+	window.uid = {{object.id}};
+	window.api = API.url("funds").id(window.uid);
+});
+$("a[href='#buy']").one('show.bs.tab', function(){
+	var $form = $("#buyForm");
+	$form.captcha();
+	$form.validate({
+		rules: {
+			money: {
+				required: true,
+				number: true,
+			}
+		}
+	});
+	$form.submit(function(){
+		console.log($form);
+		$form.validate();
+		if (!$form.valid()) return;
+		api.url("buy").post($form.serializeObject())
+		.ok(function(data){
+			window.location.href="?uid="+window.uid;
+		});
+	});
+});
+$("a[href='#ransom']").one('show.bs.tab', function(){
+	var $form = $("#ransomForm");
+	$form.captcha();
+	$form.validate({
+		rules: {
+			money: {
+				required: true,
+				number: true,
+			}
+		}
+	});
+	$form.submit(function(){
+		console.log($form);
+		$form.validate();
+		if (!$form.valid()) return;
+		api.url("ransom").post($form.serializeObject())
+		.ok(function(data){
+			window.location.href="?uid="+window.uid;
+		});
+	});
+});
+</script>
 {% endblock %}

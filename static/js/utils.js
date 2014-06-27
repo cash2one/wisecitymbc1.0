@@ -86,11 +86,16 @@ $.fn.error = function () {
 
 $.fn.captcha = function() {
 	var $this = $(this);
-	function change(){
-		$this.attr("src", "/captcha/");
+	$this.css("max-width", "100%");
+	if ($this.is('img')){
+		function change(){
+			$this.attr("src", "/captcha/");
+		}
+		change();
+		$this.click(change);
+	} else if ($this.is('form')) {
+		$this.find('img').captcha();
 	}
-	change();
-	$this.click(change);
 };
 
 $.fn.render = function(data) {
@@ -257,5 +262,12 @@ $.validator.setDefaults({
 	debug: true,
 	onfocusout: false,
 	onkeyup: false,
-	onclick: false
+	onclick: false,
+	errorPlacement: function(error, element){
+		element.error();
+	}
+});
+$("form").submit(function(e){
+	e.preventDefault();
+	return false;
 });
