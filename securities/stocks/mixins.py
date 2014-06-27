@@ -27,11 +27,15 @@ class HasStockMixin(models.Model):
 			object_id_field = 'owner_object_id'
 	)
 	
-	stock_applications = generic.GenericRelation(
+	_stock_applications = generic.GenericRelation(
 			'stocks.Application',
 			content_type_field = 'applicant_type',
 			object_id_field = 'applicant_object_id'
 	)
+	
+	@property
+	def stock_applications(self):
+		return self._stock_applications.filter(shares__gt = 0)
 	
 	def get_stock_share(self, stock, create = False, **kwargs):
 		try:

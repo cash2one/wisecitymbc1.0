@@ -11,6 +11,11 @@ from .permissions import HasStock
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
+def stocks_list(request):
+	return Repsonse(template_name = 'securities/stocks/list.html')
+	
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
 def change_application(request):
 	application_id = request.REQUEST.get('uid', '0')
 	application_object = get_object_or_404(models.Application, pk = application_id)
@@ -63,7 +68,7 @@ class ShareAPIViewSet(GenericViewSet, mixins.ListModelMixin):
 			qs = qs.filter(stock_id = stock_pk)
 		return qs
 		
-class ApplicationAPIViewSet(GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+class ApplicationAPIViewSet(ModelViewSet):
 	
 	model = models.Application
 	serializer_class = serializers.ApplicationSerializer
@@ -96,13 +101,19 @@ class StockAPIViewSet(ModelViewSet):
 		return response	
 		
 	def apply(self, request, type, *args, **kwargs):
-		price = request.DATA.get('price', None)
-		shares = request.DATA.get('shares', None)
-		if price is None or shares is None:
-			raise ParamError("Shares and money must be set.")
-		shares = Decimal(shares)
-		price = Decimal(price)
-		res = request.user.profile.info._apply(type, self.get_object(), price, shares)
+		# price = request.DATA.get('price', None)
+		# shares = request.DATA.get('shares', None)
+		# if price is None or shares is None:
+			# raise ParamError("Shares and money must be set.")
+		# shares = Decimal(shares)
+		# price = Decimal(price)
+		# res = request.user.profile.info._apply(type, self.get_object(), price, shares)
+		se = serializers.ApplySerializer(type, self.get_object(), request.user.profile.info, data = request.DATA)
+		if se.is_valid():
+			res = se.save()
+			print 1
+			
+		print 2
 			
 		return Response(serializers.ApplicationSerializer(res).data)		
 		

@@ -8,8 +8,8 @@
 		<h4>现价: {{object.current_price}}</h4>
 	</div>
 </div>
-<div class="tab-content">
 	{% block tab_content %}
+<div class="tab-content">
 	<div class="tab-pane fade in active" id="main">
 		<div class="panel panel-default panel-mese2014">
 			<div class="panel-heading">最新申请&nbsp;<button class="btn btn-link" id="refreshApplications">刷新</button></div>
@@ -51,6 +51,10 @@
 						<th>{{app.shares}}</th>
 						<th>{%if app.type == 'SELL'%}卖出{%else%}买入{%endif%}</th>
 						<th>{{app.created_time}}</th>
+						<th>
+							<a class="delApp" data-id="{{app.id}}" href="javascript:void(0);">删除</a>&nbsp;
+							<a href="/stocks/change/?uid={{app.id}}">修改</a>
+						</th>
 					</tr>
 				{% endfor %}
 				</tbody>
@@ -92,8 +96,8 @@
 			</form>
 		</div>
 	</div>
-	{% endblock %}
 </div>
+	{% endblock %}
 {% endblock %}
 {% block sidebar %}
 <div class="container">
@@ -137,6 +141,7 @@ $('a[href="#op"]').one('show.bs.tab', function(){
 		if (!$form.valid()) return false;
 		API.url("stocks").id(uid).url($this.attr('name')).post($form.serializeObject())
 		.ok(function(data){
+			window.location.href="?uid="+window.uid;
 		});
 	});
 	$form.submit(function(e){
@@ -146,6 +151,13 @@ $('a[href="#op"]').one('show.bs.tab', function(){
 });
 $(function(){
 	window.uid = {{uid}};
+	$("a.delApp").on('click', function(){
+		var $this = $(this), $id = $this.attr("data-id");
+		API.url("stocks").url("applications").id($id).delete()
+		.ok(function(){
+			$this.parent().parent().remove();
+		});
+	});
 	$("#refreshApplications").click(function(){
 		API.url('stocks').id(uid).url('applications').param('limit', 100).get()
 		.ok(function(data){

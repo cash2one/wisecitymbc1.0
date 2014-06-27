@@ -1,12 +1,26 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.decorators import action
-from rest_framework import status
+from rest_framework.decorators import action, api_view, renderer_classes
+from rest_framework import status, renderers
 from rest_framework.response import Response
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 import models, serializers
 from common.exceptions import *
 from decimal import Decimal
 from permissions import *
+
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def detail(request):
+	fund_id = request.REQUEST.get('uid', 0)
+	fund = get_object_or_404(models.Fund, pk = fund_id)
+	return Response({'object': fund, 'uid': fund_id}, template_name = 'securities/funds/detail.html')
+	
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def funds_list(request):
+	return Response(template_name = 'securities/funds/list.html')
 
 class ShareAPIViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
 	

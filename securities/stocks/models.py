@@ -25,6 +25,7 @@ class Stock(models.Model):
 	publisher = generic.GenericForeignKey('publisher_type', 'publisher_object_id')
 	
 	current_price = DecimalField()
+	total_shares = models.IntegerField(blank = True, default = 0)
 	created_time = models.DateTimeField(auto_now_add = True)
 	
 	def transfer(self, app_seller, app_buyer, shares):
@@ -92,7 +93,7 @@ class Application(get_inc_dec_mixin(['shares', 'price'])):
 	stock = models.ForeignKey(Stock, related_name = 'applications')
 	command = models.CharField(max_length = 4, choices = COMMAND_CHOICE)
 	price  = DecimalField()
-	shares = DecimalField()
+	shares = models.IntegerField(blank = True, default = 0)
 	created_time = models.DateTimeField(auto_now_add = True)
 	
 	# def decrease_or_delete(self, shares):
@@ -149,7 +150,7 @@ class Share(get_inc_dec_mixin(['shares'])):
 	owner = generic.GenericForeignKey('owner_type', 'owner_object_id')
 	
 	stock = models.ForeignKey(Stock, related_name = 'shares')
-	shares = DecimalField()
+	shares = models.IntegerField(blank = True, default = 0)
 	
 	objects = ShareManager()
 	
