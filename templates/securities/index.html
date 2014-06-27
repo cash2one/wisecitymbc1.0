@@ -5,24 +5,24 @@
   <div class="col-md-8">
     <div class="panel panel-default panel-mese2014">
       <div class="panel-heading">
-        股票版块<a href="details.html" class="pull-right">详细情况</a>
+        股票版块<a href="/stocks/" class="pull-right">详细情况</a>
       </div>
       <div class="panel-body">
         <div class="chart-container col-md-7 hidden-xs" id="stock-chart">
         </div>     
-        <div class="col-md-5">  
+        <div class="col-md-5">
         <table class="table">
           <thead>
+            <th>序号</th>
             <th>名称</th>
             <th>价格</th>
-            <th></th>
           </thead>
-          <tbody>
-            <th>ID1</th>
-            <th><i class="fa fa-cny"> l2</i></th>
-            <th><i class="fa fa-caret-down fa-lg"></i></th>
+          <tbody id="stbody">
+            
           </tbody>
         </table>
+            <div class="btn btn-mese2014" id="s_prev_btn">前一页</div>
+            <div class="btn btn-mese2014" id="s_next_btn">后一页</div>
           </div>
       </div>
     </div>
@@ -31,6 +31,13 @@
   </div>
 </div>
 <script>
+  API.list({
+	apiUrl: API.url("stocks"),
+	container: "stbody",
+	prev: "s_prev_btn",
+	next: "s_next_btn",
+	template: "<tr><th>{id}</th><th>{display_name}</th><th>{current_price}</th>"  
+  })
   $(document).ready(function(){Highcharts.setOptions({global:{useUTC:false}})})
   $('#stock-chart').highcharts({
     chart:{

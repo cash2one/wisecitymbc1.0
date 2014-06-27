@@ -1,0 +1,14 @@
+{% block sidenav %}
+  {% with info=user.profile.info %}
+  {% ifequal info.account_type "person" %}
+  <div class="panel panel-default utinfo">
+    <div class="panel-body">
+    用户名：{{info.display_name}}<br>
+    性别：{{info.gender}}<br>
+    职位：{{info.position}}<br>
+    行业：{{info.industry}}<br>
+    所属公司：<a href="{{info.company.url}}">{{info.company.display_name}}</a><br>
+    </div>
+  </div>
+  {% endifequal %}{% endwith %}
+{% endblock %}
