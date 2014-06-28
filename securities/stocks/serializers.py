@@ -1,5 +1,8 @@
+#encoding=utf8
+from __future__ import division
 from rest_framework import serializers, pagination
 from .models import Stock, Share, Application, Log
+from rest_framework.serializers import ValidationError
 from accounts.serializers import AccountField
 
 class StockSerializer(serializers.ModelSerializer):
@@ -22,7 +25,7 @@ class LogSerializer(serializers.ModelSerializer):
 		
 class ShareSerializer(serializers.ModelSerializer):
 	
-	stock = serializers.Field(source = 'stock.display_name')
+	stock = StockSerializer(fields = ('display_name', 'id', 'current_price', 'url'))
 	
 	class Meta:
 		model = Share
@@ -31,6 +34,41 @@ class ShareSerializer(serializers.ModelSerializer):
 class ApplicationSerializer(serializers.ModelSerializer):
 	
 	stock = StockSerializer(fields = ['id', 'display_name'])
+	
+	def __init__(self, *args, **kwargs):
+		res = super(ApplicationSerializer, self).__init__(*args, **kwargs)
+		if self.object and self.many == False:
+			self.__stock = self.object.stock
+			self.__type = self.object.command
+			self.__actor = self.object.applicant
+			
+		return res
+		
+	def validate_price(self, attrs, source):
+		price = self.__stock.current_price
+		if abs((price-attrs[source]) / price) >= 0.2:
+			raise ValidationError(u"申请的股价不能高出/低于现价的20%。")
+			
+		if self.__type == Application.BUY and not self.__actor.check_assets(attrs[source] * attrs['shares']):
+			raise ValidationError(u"账户余额不足。")
+			
+		return attrs
+		
+	def validate_shares(self, attrs, source):
+		
+		def raise_error():
+			raise ValidationError(u"你所持有的股份数不够。")
+			
+		if self.__type == Application.BUY:
+			return attrs
+		try:
+			share = self.__actor.stock_shares.get(stock = self.__stock)
+			if share.shares < attrs['shares']:
+				raise_error()
+		except Share.DoesNotExist:
+			raise_error()
+			
+		return attrs
 	
 	class Meta:
 		model = Application
@@ -45,7 +83,33 @@ class ApplySerializer(serializers.Serializer):
 		self.__stock = stock
 		self.__type = type
 		self.__actor = actor
-		super(ApplySerializer, self).__init__(*args, **kwargs)
+		return super(ApplySerializer, self).__init__(*args, **kwargs)
+		
+	def validate_price(self, attrs, source):
+		price = self.__stock.current_price
+		if abs((price-attrs[source]) / price) >= 0.2:
+			raise ValidationError(u"申请的股价不能高出/低于现价的20%。")
+			
+		if self.__type == Application.BUY and not self.__actor.check_assets(attrs[source] * attrs['shares']):
+			raise ValidationError(u"账户余额不足。")
+			
+		return attrs
+		
+	def validate_shares(self, attrs, source):
+		
+		def raise_error():
+			raise ValidationError(u"你所持有的股份数不够。")
+			
+		if self.__type == Application.BUY:
+			return attrs
+		try:
+			share = self.__actor.stock_shares.get(stock = self.__stock)
+			if share.shares < attrs['shares']:
+				raise_error()
+		except Share.DoesNotExist:
+			raise_error()
+			
+		return attrs
 		
 	def restore_object(self, attrs, instance = None):
 		return self.__actor._apply(self.__type, self.__stock, attrs['price'], attrs['shares'])

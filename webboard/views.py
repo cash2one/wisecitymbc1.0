@@ -82,4 +82,6 @@ class CommentAPIViewSet(viewsets.ModelViewSet):
 		return get_object_or_404(models.Passage, pk = passage_pk).comments.all()
 		
 	def create(self, request, *args, **kwargs):
-		return super(CommentAPIViewSet, self).create(request, passage = kwargs['passage_pk'], author = request.user.id, *args, **kwargs)
+		res = super(CommentAPIViewSet, self).create(request, passage = kwargs['passage_pk'], author = request.user.id, *args, **kwargs)
+		self.object.send()
+		return res

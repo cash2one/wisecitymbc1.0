@@ -11,9 +11,16 @@ from django.db import connection
 
 from decimal import Decimal
 
-from notifications import send_notification
+from notifications import Dispatcher
 
 from django.core.exceptions import ValidationError
+
+dispatcher = Dispatcher({
+	'create': u'${fund}已成功创建，请设置基金帐号的密码。',
+	'end': u'${fund}已经结束，所有信息将被删除。',
+	'delete': u'${fund}未达到运行条件，已被取消。',
+	'ransom': u'${actor}申请赎回基金￥${money}'
+})
 
 class FundManager(models.Manager):
 	
@@ -90,25 +97,30 @@ class Fund(models.Model):
 		for share in self.shares.all():
 			share.owner.inc_assets(share.money)
 		shares.delete()
-		self._send_notification(u'结束了', action = 'delete')
+		self._send_notification('end', action = 'delete')
 		self._end()
 	
-	def _send_notification(self, verb, recipient = None, **kwargs):
+	def _send_notification(self, key, args = {}, recipient = None, **kwargs):
 		if recipient is None:
 			recipient = self.publisher.profile.user
+			
+		args['fund'] = self
 		
-		return send_notification(recipient = recipient, verb = verb, actor = u'系统', target = self, **kwargs)
+		return dispatcher.send(key, args, target = self, recipient = recipient, **kwargs)
+	
+	def get_absolute_url(self):
+		return '/funds/detail/?uid=%d' % self.id 
 	
 	def publish(self, delete_on_failed = True):
 		print self.total_money
 		if self.total_money >= self.initial_money:
 			if delete_on_failed:
-				self._send_notification(u'被取消了')
+				self._send_notification('delete', action = 'delete')
 				self._end()
 			else:
 				raise ValidationError("")
 				
-		self._send_notification(u'发布了')
+		self._send_notification('create', important = True, url = '/funds/setps/?uid=%d' % self.id)
 		
 	def create_user(self, username, password):
 		User = ContentType.objects.get(app_label = 'auth', model = 'user').model_class()
@@ -159,20 +171,9 @@ class RansomApplication(models.Model):
 	owner = generic.GenericForeignKey('owner_type', 'owner_object_id')
 	money = DecimalField()
 	created_time = models.DateTimeField(auto_now_add = True)		
-	
-	def clean_fields(self, *args, **kwargs):
-		if not self.fund.published:
-			raise ValidationError("The fund hasn't been published!")
-		try:
-			share = self.owner.fund_shares.get(fund = fund)
-		except Share.DoesNotExist:
-			raise ValidationError("You have no shares of this fund!")
-		if share.money < self.money:
-			raise ValidationError("There is not enough money in your fund!")
 			
 	def delete(self, *args, **kwargs):
 		self.fund.apply_money(self.owner, -self.money)
-		print 2
 		super(RansomApplication, self).delete(*args, **kwargs)
 		
 class Share(get_inc_dec_mixin(['money'])):

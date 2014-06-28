@@ -61,7 +61,7 @@ class HasAssetsMixin(get_inc_dec_mixin(['assets'])):
 	def check_assets(self, assets):
 		print self.assets, assets
 		if self.assets < Decimal(assets):
-			raise AssetsNotEnough
+			return False
 		
 		return True
 	

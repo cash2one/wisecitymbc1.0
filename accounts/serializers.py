@@ -1,3 +1,4 @@
+#encoding=utf8
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from django.contrib.auth.models import User
@@ -153,6 +154,8 @@ class AccountField(serializers.WritableField):
 		).data
 		
 	def field_from_native(self, data, files, field_name, into):
+		if not self.required:
+			return False
 		enter_data = data[field_name]
 		if isinstance(enter_data, (str, unicode)):
 			data = models.filter_accounts(display_name = enter_data)

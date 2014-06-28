@@ -116,15 +116,40 @@
     {% endblock %}
 		<script>
 			$(function(){
-				toastr.options.timeOut = 0;
-				var timeId = setTimeout(function(){
-					API.url("notifications").get().ok(function(data){
-						$(data.results).each(function(){
-							toastr.info(this.message, "系统消息");
+				$("form").submit(function(e){
+					e.preventDefault();
+					return false;
+				});
+				function time(first){
+					var api = API.url("notifications");
+					if (!first){api = api.param('now','a')}
+					api.get().ok(function(data){
+						$(data.results).each(function(){	
+							var $msg = [this.message];
+							if (this.url)
+							$msg.push("&nbsp;<a href='{url}' target=_blank>详情</a>".render(this));
+							$msg.push("&nbsp;<a href='javascript:void(0);' id='{id}'class='confirm'>确认</a>".render(this))
+							console.log($msg);
+							toastr.info($msg.join(""), "系统消息")
+							.click(function(){
+								$(this).hide();
+							})
+							.find('a.confirm').click(function(){
+								API.url("notifications").id($(this).attr("id")).url("confirm").get(function(){
+									$(this).parent().parent().hide();
+								});
+							});
 						});
 					});
-					timeId = setTimeout(timeId);
-				}, 10000);
+				}
+				toastr.options.timeOut = 0;
+				toastr.options.tapToDismiss = false;
+				toastr.options.onhover = false;
+				time(true);
+				var timeId = setTimeout(function(){
+					time();
+					var timeId = setTimeout(arguments.callee, 30000);
+				}, 1000);
 			});
 		</script>
    {% block extra_script %}{%endblock%}

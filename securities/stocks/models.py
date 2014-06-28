@@ -14,7 +14,9 @@ from signals import application_updated
 
 from decimal import Decimal
 
-from notifications import send_notifications
+from notifications import Dispatcher
+
+dispatcher = Dispatcher(u'系统处理了你的股票${type}申请：成功${type}了${stock}。')
 
 class Stock(models.Model):
 	
@@ -55,6 +57,9 @@ class Stock(models.Model):
 	
 	def __unicode__(self):
 		return u"股票 %s" % self.display_name
+		
+	def get_absolute_url(self):
+		return '/stocks/detail/?uid=%d' % self.id
 	
 	class Meta:
 		ordering = ['-current_price', '-created_time']
@@ -110,15 +115,16 @@ class Application(get_inc_dec_mixin(['shares', 'price'])):
 		return self._share
 	
 	def clean(self):
-		current_price, new_price = Decimal(self.stock.current_price), Decimal(self.price)
-		assert abs((current_price-new_price) / current_price) <= 0.2, "Stock price overflow."
-		if self.command and self.command == self.BUY:
-			self.applicant.check_assets(new_price * self.shares)
+	#	current_price, new_price = Decimal(self.stock.current_price), Decimal(self.price)
+		#assert abs((current_price-new_price) / current_price) <= 0.2, "Stock price overflow."
+		#if self.command and self.command == self.BUY:
+		#	self.applicant.check_assets(new_price * self.shares)
 
-		if self.command and self.command == self.SELL:
-			self.get_share()
-			if self._share is None or self._share.shares < self.shares:
-				raise SharesNotEnough			
+		#if self.command and self.command == self.SELL:
+		#	self.get_share()
+		#	if self._share is None or self._share.shares < self.shares:
+		#		raise SharesNotEnough		
+		pass
 	
 	def save(self, send = False, *args, **kwargs):
 		if send and self.id is not None:
@@ -155,6 +161,13 @@ class Share(get_inc_dec_mixin(['shares'])):
 	objects = ShareManager()
 	
 def process_application_updated(sender, **kwargs):
+	
+	def get_type(app):
+		if app.command == Application.SELL:
+			return u'卖出'
+		else:
+			return u'买入'	
+	
 	application = kwargs.get('application', None)
 	stock = application.stock
 	price = application.price
@@ -168,14 +181,15 @@ def process_application_updated(sender, **kwargs):
 			break
 	if not application_sets:
 		return
-	print application_sets
 
 	notifications = [{
 			'recipient': application.applicant.profile.user,
-			'verb': u'处理了',
-			'actor': u'系统',
 			'target': application,
 			'action': 'delete',
+			'args': {
+				'type': get_type(application),
+				'stock': stock
+			}
 	}]
 		
 	for _application, share in application_sets:
@@ -184,11 +198,13 @@ def process_application_updated(sender, **kwargs):
 		else:
 			seller, buyer = application, _application
 		notifications.append({
-				'actor': u'系统',
-				'verb': u'处理了',
 				'recipient': _application.applicant.profile.user,
 				'target': _application,
 				'action': 'delete',
+				'args': {
+					'type': get_type(_application),
+					'stock': stock
+				}
 		})
 		stock.transfer(seller, buyer, share)	
 		
@@ -196,7 +212,7 @@ def process_application_updated(sender, **kwargs):
 		notifications[-1]['action'] = 'null'
 	elif quantity > 0:
 		notifications[0]['action'] = 'null'
-	send_notifications(notifications)
+	dispatcher.multi_send('_', data = notifications)
 		
 	stock.update_price(price)
 	

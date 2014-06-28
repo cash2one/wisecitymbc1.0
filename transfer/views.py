@@ -18,10 +18,9 @@ from captcha.decorators import check_captcha
 @permission_classes([IsSubClass('CanTransferMixin')])
 @check_captcha()
 def transfer(request, *args, **kwargs):
-	data = serializers.TransferSerializer(data = request.DATA)
+	data = serializers.TransferSerializer(data = request.DATA, actor = request.user.profile.info)
 	if data.is_valid():
-		data = data.object
-		return Response(serializers.TransferLogSerializer(request.user.profile.info.transfer_money(data['to'], data['money'])).data)
+		return Response(data.object)
 	else:
 		return Response(data.errors, status = status.HTTP_400_BAD_REQUEST)
 
@@ -32,13 +31,19 @@ class BankAPIViewSet(ReadOnlyModelViewSet):
 	
 	@action(methods = ['POST'], permission_classes = [IsSubClass('CanStoreMixin')])
 	def store(self, request, *args, **kwargs):
-		money = Decimal(request.DATA.get('money', 0))
-		return Response(serializers.DepositSerializer(request.user.profile.info.store_money(self.get_object(), money)).data)
+		se = serializers.StoreSerializer(data = request.DATA, actor = request.user.profile.info, bank = self.get_object(), command = 'store')
+		if se.is_valid():
+			return Response(se.object)
+		else:
+			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)
 		
 	@action(methods = ['POST'], permission_classes = [IsSubClass('CanStoreMixin')])
 	def remove(self, request, *args, **kwargs):
-		money = Decimal(request.DATA.get('money', 0))
-		return Response(serializers.DepositSerializer(request.user.profile.info.remove_money(self.get_object(), money)).data)
+		se = serializers.StoreSerializer(data = request.DATA, actor = request.user.profile.info, bank = self.get_object(), command = 'remove')
+		if se.is_valid():
+			return Response(se.object)
+		else:
+			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)
 
 class TransferLogAPIViewSet(ReadOnlyModelViewSet):
 

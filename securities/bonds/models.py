@@ -13,7 +13,12 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from notifications import send_notification
+from notifications import Dispatcher
+
+dispatcher = Dispatcher({
+		'start': u'${bond}成功发布。',
+		'end': u'${bond}已经结束。'
+})
 
 class BondManager(models.Manager):
 	
@@ -51,10 +56,16 @@ class Bond(models.Model):
 			
 		return u'%s债券 %s' % (_type, self.display_name)
 	
+	def get_absolute_url(self):
+		return '/bonds/detail/?uid=%d' % self.id
+	
+	def send_notification(self, key):
+		return dispatcher.send(key, {'bond': self}, recipient = self.publisher.profile.user, target = self)
+	
 	def publish(self):
 		self.published = True
 		self.save()
-		send_notification(recipient = self.publisher.profile.user, verb = u'已经发布了', actor = self, target = self) 
+		self.send_notification('start')
 		
 	def check_published(self):
 		if self.published:
@@ -70,7 +81,7 @@ class Bond(models.Model):
 			share.owner.inc_assets(money)
 		if self.type == self.ENTERPRISE:
 			self.publisher.dec_assets(total)
-		send_notification(recipient = self.publisher.profile.user, verb = u'已经结束了', actor = self) 
+		self.send_notification('end')
 		shares.delete()
 		self.delete()
 	

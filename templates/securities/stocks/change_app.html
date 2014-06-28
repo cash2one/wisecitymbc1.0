@@ -4,25 +4,28 @@
 <div class="col-md-6 col-md-offset-3">
 	<form role="form" id="opForm" class="horizontal-form">
 		<div class="form-group">
-			<label class="col-sm-3 form-label" for="opPrice">价格</label>
-			<div class="col-md-9">
-				<input id="opPrice" type="text" name="price" value="{{application.price}}" class="form-control form-login">
+		<label class="col-sm-3 form-label" for="opPrice">价格</label>
+			<div class="input-group">
+					<input id="opPrice" type="text" name="price" value="{{application.price}}" class="form-control form-login">
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-sm-3 form-label" for="opShares">股份数</label>
-			<div class="col-sm-9">
+		<label class="col-sm-3 form-label" for="opShares">股份数</label>
+			<div class="input-group">
 				<input id="opShares" type="text" name="shares" value="{{application.shares}}" class="form-control form-login" >
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-sm-3 form-label"  for="opType">类型</label>
-			<div class="col-sm-9">
+		<label class="col-sm-3 form-label"  for="opType">类型</label>
+			<div class="input-group">
 				<span id="opType">{% if application.type == "SELL" %}卖出{% else %}买入{% endif %}</span>
 			</div>
 		</div>
+		<div class="container">
+			<div class="alert alert-danger alert-login"></div>
+		</div>
 		<div class="form-group">
-			<div class="col-md-11">
+			<div class="col-md-offset-1 col-md-10">
 				<input type="submit" class="btn btn-login" value="提交">					
 			</div>
 		</div>
@@ -49,9 +52,6 @@ $(function(){
 				number: true,
 				digits: true
 			}
-		},
-				errorPlacement: function(error, element){
-			element.error();
 		}
 	});
 	$form.submit(function(e){

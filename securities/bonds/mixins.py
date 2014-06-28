@@ -16,7 +16,7 @@ class HasBondMixin(models.Model):
 	
 	def buy_bond(self, bond, money):
 		#@bond.check_published()
-		self.check_assets(money)
+		#self.check_assets(money)
 		bond.apply_money(self, money)
 		self.dec_assets(money)
 		

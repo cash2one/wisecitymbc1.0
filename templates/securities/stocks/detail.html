@@ -65,25 +65,30 @@
 		<div class="col-md-6 col-md-offset-3">
 			<form role="form" id="opForm" class="horizontal-form">
 				<div class="form-group">
-					<label class="col-sm-3 form-label" for="opPrice">价格</label>
-					<div class="col-sm-9">
-						<input id="opPrice" type="text" name="price" class="form-control form-login">
+				<label class="col-sm-3 form-label" for="opPrice">价格</label>
+					<div class="input-group">
+							<input id="opPrice" type="text" name="price" class="form-control form-login">
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-sm-3 form-label" for="opShares">股份数</label>
-					<div class="col-sm-9">
-						<input id="opShares" type="text" name="shares" class="form-control form-login">
+				<label class="col-sm-3 form-label" for="opShares">股份数</label>
+					<div class="input-group">
+							<input id="opShares" type="text" name="shares" class="form-control form-login">
 					</div>
 				</div>
 				<div class="form-group">
-					<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="col-sm-4">
-						<input type="text" name="captcha" class="form-control">
+				<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
+					<div class="input-group" >
+						<div class="col-sm-4" style="padding-left:0">
+							<input type="text" name="captcha" class="form-control">
+						</div>
+						<div class="col-md-8">
+							<img name="captcha"/>
+						</div>	
 					</div>
-					<div class="col-md-5">
-						<img name="captcha" class="pull-right"/>
-					</div>	
+				</div>
+				<div class="container">
+					<div class="alert alert-danger alert-login"></div>
 				</div>
 				<div class="form-group">
 					<div class="col-sm-6">
@@ -130,9 +135,6 @@ $('a[href="#op"]').one('show.bs.tab', function(){
 				number: true,
 				digits: true
 			}
-		},
-		errorPlacement: function(error, element){
-			element.error();
 		}
 	});
 	$form.find("input[type=submit]").click(function(){

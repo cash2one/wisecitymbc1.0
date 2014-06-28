@@ -37,24 +37,30 @@
 		</tbody>
 	</table>
 </div>
+{% block main_block %}
 <div class="tab-content">
 	<div class="tab-pane fade in" id="buy">
 		<div class="col-md-6 col-md-offset-3">
 			<form role="form" id="buyForm" class="horizontal-form">
 				<div class="form-group">
-					<label class="col-sm-3 form-label" for="opPrice">资金</label>
-					<div class="col-sm-9">
-						<input id="opPrice" type="text" name="money" class="form-control form-login">
+				<label class="col-sm-3 form-label" for="opPrice">资金</label>
+					<div class="input-group">
+							<input id="opPrice" type="text" name="money" class="form-control form-login">
 					</div>
 				</div>
 				<div class="form-group">
-					<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="col-sm-4">
-						<input type="text" name="captcha" class="form-control">
+				<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
+					<div class="input-group">
+						<div class="col-sm-4" style="padding-left:0">
+							<input type="text" name="captcha" class="form-control">
+						</div>
+						<div class="col-md-8">
+							<img name="captcha"/>
+						</div>	
 					</div>
-					<div class="col-md-5">
-						<img name="captcha" class="pull-right"/>
-					</div>	
+				</div>
+				<div class="container">
+				<div class="alert alert-danger alert-login"></div>
 				</div>
 				<div class="form-group">
 					<div class="col-sm-10 col-sm-offset-1">
@@ -68,19 +74,24 @@
 		<div class="col-md-6 col-md-offset-3">
 			<form role="form" id="ransomForm" class="horizontal-form">
 				<div class="form-group">
-					<label class="col-sm-3 form-label" for="opPrice">金额</label>
-					<div class="col-sm-9">
-						<input id="opPrice" type="text" name="money" class="form-control form-login">
+				<label class="col-sm-3 form-label" for="opPrice">金额</label>
+					<div class="input-group">
+							<input id="opPrice" type="text" name="money" class="form-control form-login">
 					</div>
 				</div>
 				<div class="form-group">
-					<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="col-sm-4">
-						<input type="text" name="captcha" class="form-control">
+				<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
+					<div class="input-group">
+						<div class="col-sm-4" style="padding-left:0">
+							<input type="text" name="captcha" class="form-control">
+						</div>
+						<div class="col-md-8">
+							<img name="captcha" class="pull-right"/>
+						</div>	
 					</div>
-					<div class="col-md-5">
-						<img name="captcha" class="pull-right"/>
-					</div>	
+				</div>
+				<div class="container">
+				<div class="alert alert-danger alert-login"></div>
 				</div>
 				<div class="form-group">
 					<div class="col-sm-10 col-sm-offset-1">
@@ -92,13 +103,16 @@
 	</div>
 </div>
 {% endblock %}
+{% endblock %}
 {% block sidebar %}
-{% if object.published and object.fund_type == "open" or not object.published and user.profile.info.account_type != "media" %}
 <ul class="nav nav-pills nav-stacked nav-utinfo">
+{% if object.published and object.fund_type == "open" or not object.published and user.profile.info.account_type != "media" %}
 	<li><a href="#buy" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请购买</a></li>
-	<li><a href="#ransom" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请赎回</a></li>
-</ul>
 {% endif %}
+{% if object.published %}
+	<li><a href="#ransom" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请赎回</a></li>
+{% endif %}
+</ul>
 {% endblock %}
 {% block extra_script %}
 <script type="text/javascript">
@@ -114,6 +128,7 @@ $("a[href='#buy']").one('show.bs.tab', function(){
 			money: {
 				required: true,
 				number: true,
+				gt: 0
 			}
 		}
 	});
@@ -135,11 +150,11 @@ $("a[href='#ransom']").one('show.bs.tab', function(){
 			money: {
 				required: true,
 				number: true,
+				gt: 0
 			}
 		}
 	});
 	$form.submit(function(){
-		console.log($form);
 		$form.validate();
 		if (!$form.valid()) return;
 		api.url("ransom").post($form.serializeObject())

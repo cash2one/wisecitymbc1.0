@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from common.exceptions import ParamError
 from captcha.decorators import check_captcha
+from securities.funds.serializers import FundSerializer
 
 import models, serializers
 import json
@@ -45,8 +46,13 @@ def profile(request):
 		user_obj = request.user
 		is_self = True
 		
+	fund = None
+	if user_obj.profile.info.account_type == 'fund':
+		fund = FundSerializer(user_obj.profile.info.fund).data
+		
 	data = serializers.UserSerializer(user_obj, safe_fields = False).data
 	return Response({
+			'fund': fund,
 			'user_object': data, 
 			'permissions': Perm(user_obj),
 			'json': renderers.JSONRenderer().render(data),

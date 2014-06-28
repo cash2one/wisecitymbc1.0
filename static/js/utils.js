@@ -86,7 +86,7 @@ $.fn.error = function () {
 
 $.fn.captcha = function() {
 	var $this = $(this);
-	$this.css("max-width", "100%");
+	$this.css("max-width", "100%").addClass('pull-left');
 	if ($this.is('img')){
 		function change(){
 			$this.attr("src", "/captcha/");
@@ -183,7 +183,6 @@ $.fn.formAjaxSubmit = function(config) {
 						420:"captchaError",
 						200: "ok"
 				}, callbacks = {};
-				if (this.paramStr===undefined) {
 					if (this.type==='raw') {
 						this.paramStr = '';
 					} else {
@@ -191,7 +190,6 @@ $.fn.formAjaxSubmit = function(config) {
 						for (var i in this.params) params.push(i+'='+this.params[i]);
 						this.paramStr = '?'+encodeURI(params.join('&'));
 					}
-				}
 				
 				var statusActions = {};
 				for (var i in errors)
@@ -258,6 +256,12 @@ $.fn.formAjaxSubmit = function(config) {
 	};
 })();
 
+$.fn.placeError = function(msg){
+	if (!this.is('form')) return this;
+	console.log(this.find('.alert-login'));
+	this.find('div.alert-login').addClass('visible').html(msg.html&&msg.html()||msg);
+};
+
 $.validator.setDefaults({
 	debug: true,
 	onfocusout: false,
@@ -265,9 +269,14 @@ $.validator.setDefaults({
 	onclick: false,
 	errorPlacement: function(error, element){
 		element.error();
+		var parent = element;
+		while (!parent.is('form')) parent = parent.parent();
+		parent.placeError(error);
 	}
 });
-$("form").submit(function(e){
-	e.preventDefault();
-	return false;
-});
+$.validator.addMethod('gt', function(value, element, params){
+	return this.optional(element)||parseFloat(value)>params;
+}, $.validator.format("输入的数值必须大于{0}"));
+$.validator.addMethod('lt', function(value, element, params){
+	return this.optional(element)||parseFloat(value)<params;
+}, $.validator.format("输入的数值必须小于{0}"));

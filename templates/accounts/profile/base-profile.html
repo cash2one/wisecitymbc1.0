@@ -22,7 +22,7 @@
 {% block tabs %}
 	{% if is_self %}
 	<div class="tab-pane fade" id="cf">
-		<ul class="nav nav-pills nav-utinfo">
+		<ul class="nav nav-pills nav-utinfo" id="cful">
 			<li><a href="#cfinfo" data-toggle="pill">信息</a></li>
 			<li><a href="#cfpsw" data-toggle="pill">密码</a></li>
 		</ul>
@@ -47,7 +47,8 @@
 								<div class="col-md-5">
 									<img id="captchaImg" class="pull-right"/>
 								</div>			
-							</div>				
+							</div>	
+							<div class="alert alert-danger alert-login"></div>			
 							<div class="form-group">
 								<input type="submit" value="修改" class="btn btn-login">
 							</div>
@@ -78,6 +79,20 @@
 			<h3>资金： {{info.assets}}</h3>
 		</div>
 		{%if is_self %}
+			{% if permissions.can_store %}
+			<h4>银行存款</h4>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>银行名称</th>
+						<th>存款</th>
+					</tr>
+				</thead>
+				<tbody id="bankBody">
+				
+				</div>
+			</table>
+			{% endif %}
 			{% if permissions.has_stock %}
 			<h4>持有股票</h4>
 			<table class="table">
@@ -161,7 +176,7 @@
 							<img id="transferCaptchaImg" />
 						</div>
 					</div>
-					<div class="alert alert-danger alert-login" id="transferError">asgsad</div>
+					<div class="alert alert-danger alert-login" id="transferError"></div>
 					<div class="form-group">
 						<div class="col-sm-12">
 							<input type="submit" class="btn btn-login" value="开始转帐" >
@@ -174,7 +189,7 @@
 				</div>
 			</div>
 		</div>
-
+	</div>
 	{% endif %}
 	{% if permissions.publish_passage %}
 		<div class="tab-pane fade" id="pl">
@@ -206,22 +221,22 @@
 {% if info.account_type != 'media' %}
 <script type="text/javascript">
 $('a[href="#as"]').one('show.bs.tab',function(){
-	var collections = {'fund':'基金','stock':'股票', 'bond':'债券'};
+	var collections = {'fund':'基金','stock':'股票', 'bond':'债券', 'bank': '存款'};
 	var templates = {
-		'fund': '<tr><th>{fund.display_name}</th><th>{money}</th></tr>',
-		'stock': '<tr><th>{stock.display_name}</th><th>{stock.current_price}</th><th>{shares}</th></tr>',
-		'bond': '<tr><th>{bond.display_name}</th><th>{money}</th></tr>',
+		'fund': '<tr><th><a href="{fund.url}">{fund.display_name}</a></th><th>{money}</th></tr>',
+		'stock': '<tr><th><a href="{stock.url}">{stock.display_name}</a></th><th>{stock.current_price}</th><th>{shares}</th></tr>',
+		'bond': '<tr><th><a href="{bond.url}">{bond.display_name}</th><th>{money}</a></th></tr>',
+		'bank': '<tr><th><a href="{bank.url}">{bank.display_name}</th><th>{money}</a></th></tr>'
 	};
 	for (var type in collections) {
 		var body = $("#"+type+"Body"),temp = templates[type];
 		if (!body.length) continue;
 		(function(body, temp, type){
-		API.url(type+'s').url('shares').param("limit", 100).get()
+		(type==='bank'?API.url('banks').url('deposits'):API.url(type+'s').url('shares')).param("limit", 100).get()
 		.ok(function(data) {
 			var s=[];
 			$(data.results).each(function(){
 				s.push(temp.render(this));
-				console.log(s);
 			});
 			$(s.join("")).appendTo(body);
 		});
@@ -326,9 +341,10 @@ $("a[href='#pr']").one('show.bs.tab', function(){
 {%endblock%}
 {% block config_script %}
 <script type="text/javascript">
+if (!$("#configForm").find("input").not(":submit").length) $('a[href="#cfinfo"]').remove();
 $("a[href='#cf']").one('show.bs.tab', function(){
 //config
-	$('a[href="#cfinfo"]').tab('show');
+	$('#cful>li>a:first').tab('show');
 	var $configForm = $("#configForm"), api = API.url("users").url("my").url("profile");
 	api.get().ok(function(data){
 		for (var field in data) {

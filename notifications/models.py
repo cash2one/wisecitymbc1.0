@@ -36,28 +36,16 @@ class NotificationQuerySet(models.query.QuerySet):
 			
 		return self.bulk_create(objects)
 	
-	def _create(self, recipient, verb, fmt = None, actor = None, target = None, url = None, action = None):
-		obj = Notification(recipient = recipient, verb = verb)
-		obj.actor = actor
-		obj.target = target
-		print actor, target, verb
-		if fmt is None:
-			fmt = u'%(actor)s%(verb)s'
-			if obj.target is not None:
-				fmt+=u'%(target)s'
-			
-		obj.message = fmt % {'actor': obj.actor, 'target': obj.target, 'verb': obj.verb}
-		if obj.target_object and url is None:
-			try:
-				obj.url = obj.target_object.get_absolute_url()
-			except AttributeError:
-				obj.url = ''
-		elif url is not None:
-			obj.url = url
+	def _create(self, recipient, message = '', target = None, url = '', save = False, **kwargs):
+		obj = Notification(recipient = recipient, message = message, **kwargs)
+		if target is not None:
+			obj.target_object = target
+		if not url and target is not None and hasattr(target, 'get_absolute_url'):
+			url = target.get_absolute_url()
+		obj.url = url
 		
-		if action is not None:
-			obj.action = action
-		
+		if save:
+			obj.save()
 		return obj
 		
 	def create_notification(self, **kwargs):
@@ -74,8 +62,6 @@ class Notification(models.Model):
 			'auth.User', 
 			related_name = 'notifications'
 	)
-	unread = models.BooleanField(default = True)
-	confirmed = models.BooleanField(default = False)
 	
 	DELETE = 'delete'
 	NULL = 'null'
@@ -83,15 +69,10 @@ class Notification(models.Model):
 		(DELETE, 'delete'),
 		(NULL, 'null'),
 	)
+
+	unread = models.BooleanField(default = True)
+	important = models.BooleanField(default = False)
 	
-	actor_text = models.CharField(max_length=255, blank=True, null=True)
-	actor_content_type = models.ForeignKey(ContentType, related_name='notify_actor', blank = True, null = True)
-	actor_object_id = models.CharField(max_length=255, blank = True, null = True)
-	actor_object = generic.GenericForeignKey('actor_content_type', 'actor_object_id')
-	
-	verb = models.CharField(max_length=255)
-	
-	target_text = models.CharField(max_length=255, blank=True, null=True)
 	target_content_type = models.ForeignKey(ContentType, related_name='notify_target',
 		blank=True, null=True)
 	target_object_id = models.CharField(max_length=255, blank=True, null=True)
@@ -99,11 +80,8 @@ class Notification(models.Model):
 		'target_object_id')
 		
 	created_time = models.DateTimeField(auto_now_add = True)
-	
 	message = models.TextField()
-	
 	url = models.URLField(max_length=255, null=True, blank = True)
-	
 	action = models.CharField(max_length=30, choices = ACTION_CHOICES, default = NULL, blank = True)
 	
 	objects = NotificationManager.for_queryset_class(NotificationQuerySet)()
@@ -114,35 +92,7 @@ class Notification(models.Model):
 	def confirm(self):
 		self.confirmed = True
 		self.save()
-		if self.action == self.DELETE:
+		if self.action == self.DELETE and self.target_object is not None:
 			self.target_object.delete()
-		
-	@property
-	def actor(self):
-		if self.actor_object is not None:
-			return self.actor_object
-		else:
-			return self.actor_text
-			
-	@property
-	def target(self):
-		if self.target_object is not None:
-			return self.target_object
-		else:
-			return self.target_text
-			
-	@actor.setter
-	def actor(self, value):
-		if isinstance(value, (str, unicode)):
-			self.actor_text = value
-		else:
-			self.actor_object = value
-			
-	@target.setter
-	def target(self, value):
-		if isinstance(value, (str, unicode)):
-			self.target_text = value
-		else:
-			self.target_object = value	
 		
 print Notification.objects

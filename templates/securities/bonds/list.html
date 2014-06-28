@@ -6,7 +6,6 @@
 			<tr>
 				<th>名称</th>
 				<th>发布者</th>
-				<th>类型</th>
 				<th>状态</th>
 			</tr>
 		</thead>
@@ -24,7 +23,7 @@
 <script type="text/javascript">
 $(function(){
 	API.list({
-		apiUrl: API.url("funds"),
+		apiUrl: API.url("bonds"),
 		prev: 'prevBtn',
 		next: 'nextBtn',
 		container: 'container',
@@ -32,11 +31,8 @@ $(function(){
 			if (data.published) {
 				data.state = '已发布'
 			} else data.state = '未发布';
-			if (data.fund_type == 'open') 
-				data.type = '开放式基金'
-			else data.type = '封闭式基金';
 		},
-		template: '<tr><th><a href="{url}">{display_name}</a></th><th><a href="{publisher.url}">{publisher.display_name}</a></th><th>{state}</th><th>{type}</th></tr>'
+		template: '<tr><th><a href="{url}">{display_name}</a></th><th><a href="{publisher.url}">{publisher.display_name}</a></th><th>{state}</th></tr>'
 	});
 });
 </script>

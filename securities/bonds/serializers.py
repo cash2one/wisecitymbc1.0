@@ -1,3 +1,4 @@
+#encoding=utf8
 from rest_framework import serializers
 from .models import Bond, Share
 from accounts.serializers import AccountField
@@ -5,6 +6,7 @@ from accounts.serializers import AccountField
 class BondSerializer(serializers.ModelSerializer):
 
 	publisher = AccountField(required = False)
+	url = serializers.Field(source = 'get_absolute_url')
 
 	class Meta:
 		exclude = ('publisher_type', 'publisher_object_id','account', )
@@ -17,3 +19,25 @@ class ShareSerializer(serializers.ModelSerializer):
 	class Meta:
 		exclude = ('owner_type', 'owner_object_id', 'owner')
 		model = Share
+		
+class ApplySerializer(serializers.Serializer):
+	
+	money = serializers.DecimalField()
+	
+	def __init__(self, actor, bond, *args, **kwargs):
+		self.actor = actor
+		self.bond = bond
+		return super(ApplySerializer, self).__init__(*args, **kwargs)
+		
+	def validate_money(self, attrs, source):
+		money = attrs[source]
+		print self.actor.check_assets(money)
+		if not self.actor.check_assets(money):
+			raise serializers.ValidationError(u"账户余额不足。")
+		
+		return attrs
+		
+	def restore_object(self, attrs, instance = None):
+		self.money = attrs['money']
+		self.actor.buy_bond(self.bond, self.money)
+		return {}

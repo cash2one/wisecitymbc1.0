@@ -3,7 +3,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework import status, renderers
 from rest_framework.response import Response
-from rest_framework.response import Response
+from django.contrib import auth
 from django.shortcuts import get_object_or_404
 import models, serializers
 from common.exceptions import *
@@ -22,6 +22,13 @@ def detail(request):
 def funds_list(request):
 	return Response(template_name = 'securities/funds/list.html')
 
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def setps(request):
+	fund_id = request.REQUEST.get('uid', 0)
+	fund = get_object_or_404(models.Fund, pk = fund_id)
+	return Response({'object': fund, 'uid': fund_id}, template_name = 'securities/funds/setps.html')	
+	
 class ShareAPIViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
 	
 	model = models.Share
@@ -41,21 +48,27 @@ class FundAPIViewSet(ModelViewSet):
 	model = models.Fund
 	serializer_class = serializers.FundSerializer
 	
+	@action(methods = ['POST'])
+	def account(self, request, *args, **kwargs):
+		se = serializers.CreateAccountSerializer(data = request.DATA, fund = self.get_object())
+		if se.is_valid():
+			return Response({'id':se.object.id})
+		else:
+			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)	
+	
 	@action(methods = ['POST'], permission_classes = [HasFund])
 	def ransom(self, request, *args, **kwargs):
-		money = request.DATA.get('money', None)
-		if money is None:
-			raise ParamError("The field money must be set.")
-		account = request.user.profile.info
-		account.ransom_fund_share(self.get_object(), money)
-		return Response('OK', status = status.HTTP_200_OK)
+		se = serializers.ApplySerializer(data = request.DATA, fund = self.get_object(), command = 'ransom', actor = request.user.profile.info)
+		if se.is_valid():
+			return Response('OK')
+		else:
+			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)
 	
 	@action(methods = ['POST'], permission_classes = [HasFund])
 	def buy(self, request, *args, **kwargs):
-		money = request.DATA.get('money', None)
-		if money is None:
-			raise ParamError("The field `money` must be set.")
-			
-		account = request.user.profile.info
-		account.buy_fund(self.get_object(), Decimal(money))
-		return Response('OK', status = status.HTTP_200_OK)
+		se = serializers.ApplySerializer(data = request.DATA, fund = self.get_object(), command = 'buy', actor = request.user.profile.info)
+		if se.is_valid():
+		#	se.save()
+			return Response('OK')
+		else:
+			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)

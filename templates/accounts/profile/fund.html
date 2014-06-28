@@ -3,10 +3,8 @@
 <div class="panel panel-default utinfo">
   <div class="panel-body">
     用户名：{{info.display_name}}<br>
-    性别：{%if info.gender == 'M'%}男{%else%}女{%endif%}<br>
-    职位：{{info.position}}<br>
-    行业：{{info.industry}}<br>
-    所属公司：<a href="{{info.company.url}}">{{info.company.display_name}}</a><br>
+    发布者：<a href="{{fund.publisher.url}}">{{fund.publisher.display_name}}</a><br>
+    基金主页：<a href="{{fund.url}}">{{fund.display_name}}</a><br>
   </div>
 </div>
 <ul id="menu" class="nav nav-pills nav-stacked nav-utinfo">

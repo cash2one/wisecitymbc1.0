@@ -26,6 +26,9 @@
 	{% ifequal info.account_type "government" %}
 		{% include "accounts/profile/government.html" %}
 	{% endifequal %}
+	{% ifequal info.account_type "fund" %}
+		{% include "accounts/profile/fund.html" %}
+	{% endifequal %}
 </div>
 {% endwith %}
 {% endblock %}

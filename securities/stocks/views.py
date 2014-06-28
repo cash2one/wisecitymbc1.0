@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework import mixins, renderers
+from rest_framework import mixins, renderers, status
 from rest_framework.decorators import action, api_view, renderer_classes
 import models, serializers
 from accounts.models import filter_accounts, account_classes_map
@@ -12,7 +12,7 @@ from .permissions import HasStock
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
 def stocks_list(request):
-	return Repsonse(template_name = 'securities/stocks/list.html')
+	return Response(template_name = 'securities/stocks/list.html')
 	
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -110,12 +110,13 @@ class StockAPIViewSet(ModelViewSet):
 		# res = request.user.profile.info._apply(type, self.get_object(), price, shares)
 		se = serializers.ApplySerializer(type, self.get_object(), request.user.profile.info, data = request.DATA)
 		if se.is_valid():
-			res = se.save()
-			print 1
+			res = serializers.ApplicationSerializer(se.save()).data
+			s = status.HTTP_200_OK
+		else:
+			res = se.errors
+			s = status.HTTP_400_BAD_REQUEST
 			
-		print 2
-			
-		return Response(serializers.ApplicationSerializer(res).data)		
+		return Response(res, status = s)
 		
 	@action(methods = ['GET'])
 	def data(self, request, *args, **kwargs):

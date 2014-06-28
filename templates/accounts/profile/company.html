@@ -112,7 +112,7 @@ $('a[href="#atm"]').one('show.bs.tab', function(){
 	})
 	.find("input[type='submit']").click(function(){
 		var $name = $(this).attr('name'), apiUrl = API.url("banks").id(window.data.profile.id).url($name);
-		apiUrl.post()
+		apiUrl.post($form.serializeObject())
 		.captchaError(function(){
 			$captchaInput.error();
 		}).paramError(function(){

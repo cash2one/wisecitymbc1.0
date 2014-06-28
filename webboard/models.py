@@ -6,6 +6,12 @@ from common.utils import check_base_class_by_name
 from files.models import PublicFile
 from django.core.exceptions import ValidationError
 
+from notifications import Dispatcher
+
+dispatcher = Dispatcher({
+	'comment': u'${user}评论了你的文章${passage}。'
+})
+
 class Passage(models.Model):
 	
 	GOVERNMENT = 'GOV'
@@ -43,6 +49,9 @@ class Passage(models.Model):
 	def __unicode__(self):
 		return u"%s" % self.title
 		
+	def get_absolute_url(self):
+		return '/webboard/passages/%d/' % self.id	
+		
 	class Meta:
 		ordering = ['-created_time', 'title']
 		verbose_name = u'文章'
@@ -60,6 +69,12 @@ class Comment(models.Model):
 	created_time = models.DateTimeField(auto_now_add = True)
 	passage = models.ForeignKey(Passage, related_name = 'comments')
 	#respond_comment = models.ForeignKey('self', related_name = 'responses', blank = True, null = True)
+	
+	def send(self):
+		dispatcher.send('comment', {
+				'passage': self.passage,
+				'user': self.author.profile.info
+		}, recipient = self.passage.author, target = self.passage)
 	
 	def __unicode__(self):
 		return "%s comment for passage %s" % (self.author.username, self.passage.title)

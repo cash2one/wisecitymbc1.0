@@ -21,7 +21,3 @@ person.buy_fund(fund, 1000)
 fund.share_profits()
 fund.publish(True)
 fund.create_user('fund', 'fund')
-#fund.finish()
-#from django.db import connection
-#print connection.queries
-	#print i['sql']
