@@ -72,7 +72,7 @@ class UserProfile(models.Model):
 	
 	def create_info(self, class_name, save = True, **kwargs):
 		if self.info_object is None:
-			cls = globals()[class_name]
+			cls = globals().get(class_name, None) or account_classes_map.get(class_name)
 			self.info_object = cls.objects.create(**kwargs)
 			permission_names = [getattr(cls, 'permission', '') for cls in filter(lambda cls:cls.__name__.endswith('Mixin'), getmro(cls))]
 			permissions = Permission.objects.filter(codename__in = permission_names)
@@ -230,8 +230,10 @@ def filter_accounts(**kwargs):
 				args.append("%s IN (%s)" % (key, ",".join(map(lambda x:'"%s"' % x, value))))
 			else:
 				args.append('%s=%s' % (key, value))
-		condition = 'AND'.join(args)
+		condition = ' AND '.join(args)
 		sql = '%s WHERE %s' % (sql, condition)
+		
+	print sql	
 		
 	cursor = connection.cursor()
 	cursor.execute(sql)

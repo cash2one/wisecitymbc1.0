@@ -1,4 +1,100 @@
 {% extends "accounts/profile/base-profile.html" %}
+{% block tabs %}
+{{block.super}}
+<div class="tab-pane fade in" id="mg">
+	<ul class="nav nav-pills nav-utinfo" id="mgul">
+		<li><a href="#mgca" data-toggle="pill">创建用户</a></li>
+		<li><a href="#mgcs" data-toggle="pill">创建股票</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane fade in" id="mgcs">
+			<form class="col-sm-offset-2 col-sm-8" id="csForm" class="horizontal-form" role="form">
+				<div class="form-group">
+					<label class="form-label col-md-3">发布者</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="owner">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="form-label col-md-3">股票名</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="display_name">
+					</div>
+				</div>			
+				<div class="form-group">
+					<label class="form-label col-md-3">初始价格</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="current_price">
+					</div>
+				</div>	
+				<div class="form-group">
+					<label class="form-label col-md-3">股份数</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="total_shares">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="form-label col-md-3">代销者</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="proxy">
+					</div>
+				</div>
+				<div class="container col-md-8">
+					<div class="alert alert-danger alert-login"></div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-8">
+						<input type="submit" value="创建股票" class="btn btn-login">
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="tab-pane fade in" id="mgca">
+			<form class="col-sm-offset-2 col-sm-8" id="caForm" class="horizontal-form" role="form">
+				<div class="form-group">
+					<label class="form-label col-md-3">登录名</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="username">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="form-label col-md-3">用户名</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="display_name">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="form-label col-md-3">类型</label>
+					<div class="input-group">
+						<select name="account_type" class="form-control col-sm-12">
+							<option value="government">政府</option>
+							<option value="person">个人</option>
+							<option value="fundcompany">基金公司</option>
+							<option value="bank">银行</option>
+							<option value="company">实业公司</option>
+							<option value="media">媒体</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="form-label col-md-3">初始资金</label>
+					<div class="input-group">
+						<input type="text" class="form-control" name="assets">
+					</div>
+				</div>
+				<div class="container col-md-8">
+					<div class="alert alert-danger alert-login"></div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-8">
+						<input type="submit" value="创建用户" class="btn btn-login">
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}
 {% block sidebar %}
 <div class="panel panel-default utinfo">
   <div class="panel-body">
@@ -7,5 +103,90 @@
 </div>
 <ul class="nav nav-pills nav-stacked nav-utinfo">
   {{block.super}}
+  {% if is_self %}
+  <li><a href="#mg" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>管理</a></li>
+  {% endif %}
 </ul>
+{% endblock %}
+{% block extra_script %}
+{{block.super}}
+{% if is_self %}
+<script type="text/javascript">
+$("a[href=#mg]").one('show.bs.tab', function(){
+	$('#mgul> li > a:first').tab('show');
+});
+$("a[href=#mgca]").one('show.bs.tab', function(){
+	var $form = $("#csForm");
+	$form.validate({
+		rules: {
+			owner: {
+				required: true,
+				maxlength: 20
+			},
+			display_name: {
+				required: true,
+				maxlength: 20
+			},
+			proxy: {
+				required: true,
+				maxlength: 20
+			},
+			current_price: {
+				required: true,
+				number: true,
+				gt: 0
+			},
+			total_shares: {
+				number: true,
+				digits: true,
+				required: true,
+				gt: 0,
+			}
+		}
+	});
+	$form.submit(function(){
+		$form.validate();
+		if (!$form.valid()) return;
+		API.url("stocks").post($form.serializeObject())
+		.ok(function(data){
+			$form.clearForm();
+			toastr.success("股票{display_name}创建成功！".render(data), "提示", {timeOut:3000});
+		})
+		.paramError(function(data){
+			$form.errors(data);
+		});
+	});
+});
+$("a[href=#mgca]").one('show.bs.tab', function(){
+	var $form = $("#caForm");
+	$form.validate({
+		rules: {
+			username: {
+				required: true,
+				maxlength: 20
+			},
+			display_name: {
+				required: true,
+				maxlength: 20
+			},
+			assets: {
+				number: true
+			}
+		}
+	});
+	$form.submit(function(){
+		$form.validate();
+		if (!$form.valid()) return;
+		API.url("users").post($form.serializeObject())
+		.ok(function(data){
+			$form.clearForm();
+			toastr.success("用户{profile.display_name}创建成功！".render(data), "提示", {timeOut:3000});
+		})
+		.paramError(function(data){
+			$form.errors(data);
+		});
+	});
+});
+</script>
+{% endif %}
 {% endblock %}

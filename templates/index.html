@@ -116,6 +116,8 @@
     {% endblock %}
 		<script>
 			$(function(){
+				var logined;
+				{% if user %} logined = true; {% endif %}
 				$("form").submit(function(e){
 					e.preventDefault();
 					return false;
@@ -145,11 +147,13 @@
 				toastr.options.timeOut = 0;
 				toastr.options.tapToDismiss = false;
 				toastr.options.onhover = false;
+				if (logined){
 				time(true);
-				var timeId = setTimeout(function(){
+				setTimeout(function(){
 					time();
 					var timeId = setTimeout(arguments.callee, 30000);
 				}, 1000);
+				}
 			});
 		</script>
    {% block extra_script %}{%endblock%}

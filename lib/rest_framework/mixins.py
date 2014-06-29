@@ -49,6 +49,7 @@ class CreateModelMixin(object):
     def create(self, request, *args, **kwargs):
         data = dict(request.DATA)
         data.update(**kwargs)
+        print data
         serializer = self.get_serializer(data=data, files=request.FILES)
 
         if serializer.is_valid():

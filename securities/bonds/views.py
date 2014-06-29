@@ -8,6 +8,7 @@ import models, serializers
 from common.exceptions import *
 from decimal import Decimal
 from .permissions import *
+from captcha.decorators import check_captcha
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -55,7 +56,11 @@ class BondAPIViewSet(ModelViewSet):
 		self.get_object().ransom()
 		return Response('OK', status = status.HTTP_200_OK)
 		
+	def create(self, request, *args, **kwargs):
+		return super(BondAPIViewSet, self).create(request, publisher = request.user.profile.info, *args, **kwargs)		
+		
 	@action(methods = ['POST'], permission_classes = [HasBond])
+	@check_captcha()
 	def buy(self, request, *args, **kwargs):
 		se = serializers.ApplySerializer(data = request.DATA, actor = request.user.profile.info, bond = self.get_object())
 		if se.is_valid():

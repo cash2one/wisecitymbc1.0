@@ -8,6 +8,7 @@ from decimal import Decimal
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .permissions import HasStock
+from captcha.decorators import check_captcha
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -88,26 +89,13 @@ class StockAPIViewSet(ModelViewSet):
 	model = models.Stock
 	
 	def create(self, request, *args, **kwargs):
-		owner = request.DATA.pop('owner', None)
-		if owner is None or not isinstance(owner, (int, str, unicode)):
-			raise ParamError("The owner field must be set or it must be the ID or display_name")
-		
-		shares = request.DATA.pop('shares', None)
-		owner = filter_accounts(display_name = owner)[0]
-		owner = account_classes_map[owner['account_type']](id = owner['id'])
-		
-		response = super(StockAPIViewSet, self).create(request, *args, **kwargs)
-		models.Share.objects.create(stock = self.object, shares = shares, owner = owner)
-		return response	
+		serializer = serializers.CreateStockSerializer(data = request.DATA)
+		if serializer.is_valid():
+			return Response(serializers.StockSerializer(serializer.object).data)
+		else:
+			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 		
 	def apply(self, request, type, *args, **kwargs):
-		# price = request.DATA.get('price', None)
-		# shares = request.DATA.get('shares', None)
-		# if price is None or shares is None:
-			# raise ParamError("Shares and money must be set.")
-		# shares = Decimal(shares)
-		# price = Decimal(price)
-		# res = request.user.profile.info._apply(type, self.get_object(), price, shares)
 		se = serializers.ApplySerializer(type, self.get_object(), request.user.profile.info, data = request.DATA)
 		if se.is_valid():
 			res = serializers.ApplicationSerializer(se.save()).data
@@ -119,6 +107,7 @@ class StockAPIViewSet(ModelViewSet):
 		return Response(res, status = s)
 		
 	@action(methods = ['GET'])
+	@check_captcha
 	def data(self, request, *args, **kwargs):
 		stock = self.get_object()
 		data = stock.logs.values('created_time', 'price').order_by('-created_time')

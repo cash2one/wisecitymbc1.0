@@ -5,11 +5,11 @@ from accounts.serializers import AccountField
 
 class BondSerializer(serializers.ModelSerializer):
 
-	publisher = AccountField(required = False)
+	publisher = AccountField()
 	url = serializers.Field(source = 'get_absolute_url')
 
 	class Meta:
-		exclude = ('publisher_type', 'publisher_object_id','account', )
+		exclude = ('publisher_type', 'publisher_object_id','account', 'type')
 		model = Bond
 		
 class ShareSerializer(serializers.ModelSerializer):

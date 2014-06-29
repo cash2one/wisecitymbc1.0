@@ -146,7 +146,8 @@ class AccountField(serializers.WritableField):
 	
 	def field_to_native(self, obj, field_name):
 		enterprise = getattr(obj, field_name)
-		return get_serializer_by_object(enterprise)(
+		if enterprise:
+			return get_serializer_by_object(enterprise)(
 				enterprise, 
 				safe_fields = True, 
 				exclude = self.exclude,
@@ -154,27 +155,71 @@ class AccountField(serializers.WritableField):
 		).data
 		
 	def field_from_native(self, data, files, field_name, into):
-		if not self.required:
-			return False
 		enter_data = data[field_name]
+		print enter_data,'a'
+		if isinstance(enter_data, models.Account):
+			cls = ContentType.objects.get(app_label = 'accounts', model = enter_data.__class__.__name__)
+			into[field_name] = enter_data
+			into['%s_type' % field_name] = cls
+			into['%s_object_id' % field_name] = enter_data.id
+			return enter_data
+			
 		if isinstance(enter_data, (str, unicode)):
 			data = models.filter_accounts(display_name = enter_data)
 			if not data:
-				raise ValidationError("account")
+				raise serializers.ValidationError(u"用户%s不存在。" % enter_data)
 				into[field_name] = None
 				return None
 			else:
 				data = data[0]
 				enter_data = {'type': data['account_type'], 'id': data['id']}
+
 		cls = ContentType.objects.get(app_label = 'accounts', model = enter_data['type'])
-		
+
 		try:
 			obj = cls.model_class().objects.get(pk = enter_data['id'])
 		except cls.model_class().DoesNotExist:
-			raise Http404
-		
-		into['%s_type' % field_name] = cls
-		into['%s_object_id' % field_name] = enter_data['id']
+			raise serializers.ValidationError(u"用户%s不存在。" % enter_data['display_name'])
 		into[field_name] = obj
 		
 		return obj
+		
+class CreateUserSerializer(serializers.Serializer):
+	
+	username = serializers.CharField()
+	display_name = serializers.CharField()
+	account_type = serializers.CharField()
+	assets = serializers.DecimalField(required = False)
+	
+	def validate_username(self, attrs, source):
+		username = attrs[source]
+		if User.objects.filter(username = username).exists():
+			raise serializers.ValidationError(u"登录名%s已存在。" % username)
+			
+		return attrs
+		
+	def validate_display_name(self, attrs, source):
+		display_name = attrs['display_name']
+		if models.filter_accounts(display_name = display_name):
+			raise serializers.ValidationError(u"用户名%s已存在。" % display_name)
+			
+		return attrs
+		
+	def validate_assets(self, attrs, source):
+		account_type = attrs['account_type']
+		assets = attrs[source]
+		
+		if account_type != 'media' and not assets:
+			raise serializers.ValidationError(u"初始资金必须填写。")
+			
+		return attrs
+		
+	def restore_object(self, attrs, instance = None):
+		user = User.objects.create_user(username = attrs['username'], password = '12345')
+		account_type, display_name = attrs['account_type'], attrs['display_name']
+		if account_type != 'media':
+			user.profile.create_info(account_type, display_name = display_name, assets = attrs['assets'])
+		else:
+			user.profile.create_info(account_type, display_name = display_name)
+			
+		return user

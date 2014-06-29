@@ -9,6 +9,7 @@ import models, serializers
 from common.exceptions import *
 from decimal import Decimal
 from permissions import *
+from captcha.decorators import check_captcha
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -48,6 +49,9 @@ class FundAPIViewSet(ModelViewSet):
 	model = models.Fund
 	serializer_class = serializers.FundSerializer
 	
+	def create(self, request, *args, **kwargs):
+		return super(FundAPIViewSet, self).create(request, publisher = request.user.profile.info, *args, **kwargs)
+	
 	@action(methods = ['POST'])
 	def account(self, request, *args, **kwargs):
 		se = serializers.CreateAccountSerializer(data = request.DATA, fund = self.get_object())
@@ -57,6 +61,7 @@ class FundAPIViewSet(ModelViewSet):
 			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)	
 	
 	@action(methods = ['POST'], permission_classes = [HasFund])
+	@check_captcha()
 	def ransom(self, request, *args, **kwargs):
 		se = serializers.ApplySerializer(data = request.DATA, fund = self.get_object(), command = 'ransom', actor = request.user.profile.info)
 		if se.is_valid():
@@ -65,6 +70,7 @@ class FundAPIViewSet(ModelViewSet):
 			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)
 	
 	@action(methods = ['POST'], permission_classes = [HasFund])
+	@check_captcha()
 	def buy(self, request, *args, **kwargs):
 		se = serializers.ApplySerializer(data = request.DATA, fund = self.get_object(), command = 'buy', actor = request.user.profile.info)
 		if se.is_valid():

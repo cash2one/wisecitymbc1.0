@@ -258,9 +258,18 @@ $.fn.formAjaxSubmit = function(config) {
 
 $.fn.placeError = function(msg){
 	if (!this.is('form')) return this;
-	console.log(this.find('.alert-login'));
 	this.find('div.alert-login').addClass('visible').html(msg.html&&msg.html()||msg);
+	return this;
 };
+
+$.fn.errors = function(data) {
+	if (!this.is('form')) return this;
+	for (var name in data) {
+		$("input[name='"+name+"']").error();
+		this.placeError(data[name]);
+	}
+	return this;
+}
 
 $.validator.setDefaults({
 	debug: true,
@@ -275,8 +284,34 @@ $.validator.setDefaults({
 	}
 });
 $.validator.addMethod('gt', function(value, element, params){
+	if (typeof params==='string'&&params[0]==="#"){
+		params = parseFloat($(element.form).find('[name='+params.slice(1)+']').val());
+	}
 	return this.optional(element)||parseFloat(value)>params;
 }, $.validator.format("输入的数值必须大于{0}"));
 $.validator.addMethod('lt', function(value, element, params){
+	if (typeof params==='string'&&params[0]==="#"){
+		params = parseFloat($(element.form).find('[name='+params.slice(1)+']').val());
+	}
 	return this.optional(element)||parseFloat(value)<params;
 }, $.validator.format("输入的数值必须小于{0}"));
+
+$(function(){
+	var allows = [];
+	function logic(date) {
+		if (date.getDayOfYear()===(new Date()).getDayOfYear()) {
+			this.setOptions({minTime: 0});
+		} else this.setOptions({minTime: undefined});
+	}
+	for (var i=8;i<24;i++) allows.push(i+':00');
+	$("input.time").mask("99:99");
+	$("input.datetime").datetimepicker({
+		format: 'Y-m-d H:i:s',
+		minDate: 0,
+		lang: 'ch',
+		allowTimes: allows,
+		//onChangeDateTime:logic,
+  	//onShow:logic,
+		showSeconds: true
+	});
+});

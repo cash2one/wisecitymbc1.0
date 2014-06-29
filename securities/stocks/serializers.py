@@ -4,6 +4,36 @@ from rest_framework import serializers, pagination
 from .models import Stock, Share, Application, Log
 from rest_framework.serializers import ValidationError
 from accounts.serializers import AccountField
+import mixins
+
+class CreateStockSerializer(serializers.Serializer):
+
+	owner = AccountField()
+	proxy = AccountField()
+	current_price = serializers.DecimalField()
+	total_shares = serializers.IntegerField()
+	display_name = serializers.CharField()
+	
+	def validate_owner(self, attrs, source):
+		owner = attrs[source]
+		if not isinstance(owner, mixins.OwnStockMixin):
+			raise serializers.ValidationError(u"用户%s没有股票发布权限。" % owner)
+			
+		return attrs
+		
+	def validate_proxy(self, attrs, source):
+		proxy = attrs[source]
+		if not isinstance(proxy, mixins.HasStockMixin):
+			raise serializers.ValidationError(u"用户%s没有股票买卖权限。" % proxy)
+			
+		return attrs
+		
+	def restore_object(self, attrs, instance = None):
+		owner, proxy = attrs.pop('owner'), attrs.pop('proxy')
+		stock = Stock.objects.create(publisher = owner, **attrs)
+		share = Share.objects.create(stock = stock, owner = proxy, shares = attrs['total_shares'])
+		
+		return stock
 
 class StockSerializer(serializers.ModelSerializer):
 

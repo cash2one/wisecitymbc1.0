@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 class FundSerializer(serializers.ModelSerializer):
 
-	publisher = AccountField(required = False)
+	publisher = AccountField(read_only = True)
 	total_money = serializers.SerializerMethodField("get_total_money")
 	url = serializers.Field(source = 'get_absolute_url')
 	

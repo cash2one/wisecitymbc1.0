@@ -19,8 +19,121 @@
 	<button class="btn btn-link pull-left" id="prevBtn">上一页</button>
 	<button class="btn btn-link pull-right" id="nextBtn">下一页</button>
 </div>
+<div class="tab-content">
+	<div id="cf" class="tab-pane fade in">
+		<form class="col-sm-offset-2 col-sm-8" id="cfForm" class="horizontal-form" role="form">
+			<div class="form-group">
+				<label class="form-label col-md-3">基金名</label>
+				<div class="input-group">
+					<input type="text" class="form-control" name="display_name">
+				</div>
+			</div>			
+			<div class="form-group">
+				<label class="form-label col-md-3">类型</label>
+				<div class="input-group">
+					<select class="form-control" name="fund_type">
+						<option value="open">开放式</option>
+						<option value="close">封闭式</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="form-label col-md-3">基本回报率</label>
+				<div class="input-group">
+					<input type="text" class="form-control" name="min_return_rate">
+				</div>
+			</div>	
+			<div class="form-group">
+				<label class="form-label col-md-3">预期回报率</label>
+				<div class="input-group">
+					<input type="text" class="form-control" name="max_return_rate">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="form-label col-md-3">初始规模</label>
+				<div class="input-group">
+					<input type="text" class="form-control" name="initial_money">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="form-label col-md-3">发布时间</label>
+				<div class="input-group">
+					<input type="text" class="form-control datetime" name="published_time">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="form-label col-md-3">运行时间</label>
+				<div class="input-group">
+					<input type="text" class="form-control time" name="lasted_time">
+				</div>
+			</div>
+			<div class="container col-md-8">
+				<div class="alert alert-danger alert-login"></div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-8">
+					<input type="submit" value="创建基金" class="btn btn-login">
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}
+{% block sidebar %}
+{{block.super}}
+<ul class="nav nav-pills nav-stacked nav-utinfo">
+	{% if perms.funds.own_fund %}
+	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>创建基金</a></li>
+	{% endif %}
+</ul>
 {% endblock %}
 {% block extra_script %}
+{% if perms.funds.own_fund %}
+<script type="text/javascript">
+$("a[href=#cf]").one('show.bs.tab', function(){
+	var $form = $("#cfForm");
+	$form.validate({
+		rules: {
+			display_name: {
+				required: true,
+				minlength:1,
+				maxlength:20
+			},
+			min_return_rate: {
+				required: true,
+				number: true,
+				gt:0,
+				lt:100
+			},
+			max_return_rate: {
+				required: true,
+				number: true,
+				gt: '#min_return_rate',
+				lt:100
+			},
+			initial_money: {
+				required: true,
+				number: true,
+				gt: 0
+			}
+		}
+	});
+	$form.submit(function(){
+		$form.validate();
+		if (!$form.valid()) return;
+		API.url('funds').post($form.serializeObject())
+		.ok(function(data){
+			console.log(data);
+			$form.clearForm();
+			toastr.success("成功创建基金{display_name}。".render(data), "提示",{timeOut: 3000});
+		})
+		.paramError(function(data){
+			$form.errors(data);
+		});
+	});
+});
+</script>
+{% endif %}
 <script type="text/javascript">
 $(function(){
 	API.list({

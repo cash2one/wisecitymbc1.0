@@ -69,6 +69,13 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 			return self.request.user
 		else:
 			return super(UserAPIViewSet, self).get_object()
+			
+	def create(self, request, *args, **kwargs):
+		serializer = serializers.CreateUserSerializer(data = request.DATA)
+		if serializer.is_valid():
+			return Response(serializers.UserSerializer(serializer.object).data)
+		else:
+			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 	
 	@action(methods=['POST'])
 	@check_captcha()
