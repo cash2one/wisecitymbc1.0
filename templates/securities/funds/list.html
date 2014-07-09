@@ -29,8 +29,8 @@
 {% block sidebar %}
 {{block.super}}
 <ul class="nav nav-pills nav-stacked nav-utinfo">
-	{% if perms.funds.own_fund %}
 	<li><a href="#main" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>行情</a></li>
+	{% if perms.funds.own_fund %}
 	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>创建基金</a></li>
 	{% endif %}
 </ul>

@@ -4,8 +4,8 @@
   <div class="panel-body">
     公司名：{{info.display_name}}<br>
     简介：{{info.description}}<br>
-    所属版块：{{info.section}}<br>
-    行业：{{info.industry}}<br>
+    所属版块：{%if info.account_type == "company"%}{{info.section}}{%else%}金融{%endif%}<br>
+    行业：{%if info.account_type == "company"%}{{info.industry}}{%elif info.account_type == "bank"%}银行{%else%}基金公司{%endif%}<br>
     联系方式：{{info.contact}}<br>
   </div>
 </div>
@@ -22,9 +22,14 @@
 {% endblock %}
 
 {% block config_form %}
+{% if info.account_type != "company" %}
 <input type="text" data-label="版块" name="section" validator="maxlength:20">
 <input type="text" data-label="行业" name="industry" validator="maxlength:20">
+{% endif %}
 <input type="text" data-label="联系方式" name="contact" validator="maxlength:20">
+{% if info.account_type == 'bank' %}
+<input type="text" data-label="利率" name="rate" validator="number gt:0 lt:100">
+{% endif %}
 <textarea data-label="简介" cols="3" rows="5" name="description" validator="maxlength:140"></textarea>
 {% endblock %}
 
