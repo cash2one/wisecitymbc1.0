@@ -12,7 +12,6 @@ class Cron(object):
 		return 5
 	
 	def check_time(self, delta):
-		print (delta).seconds
 		return delta.seconds>=self.get_interval_minutes()*60-self.accuracy
 	
 	def do(self):

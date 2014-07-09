@@ -117,6 +117,7 @@ class Fund(models.Model):
 			if delete_on_failed:
 				self._send_notification('delete', action = 'delete')
 				self._end()
+				return
 			else:
 				raise ValidationError("")
 				

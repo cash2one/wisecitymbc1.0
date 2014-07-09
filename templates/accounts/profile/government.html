@@ -8,88 +8,29 @@
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane fade in" id="mgcs">
-			<form class="col-sm-offset-2 col-sm-8" id="csForm" class="horizontal-form" role="form">
-				<div class="form-group">
-					<label class="form-label col-md-3">发布者</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="owner">
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="form-label col-md-3">股票名</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="display_name">
-					</div>
-				</div>			
-				<div class="form-group">
-					<label class="form-label col-md-3">初始价格</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="current_price">
-					</div>
-				</div>	
-				<div class="form-group">
-					<label class="form-label col-md-3">股份数</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="total_shares">
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="form-label col-md-3">代销者</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="proxy">
-					</div>
-				</div>
-				<div class="container col-md-8">
-					<div class="alert alert-danger alert-login"></div>
-				</div>
-				<div class="form-group">
-					<div class="col-md-8">
-						<input type="submit" value="创建股票" class="btn btn-login">
-					</div>
-				</div>
+			<form class="col-sm-offset-3 col-sm-6 mese" id="csForm" action="/api/stocks/">
+						<input type="text" name="owner" data-label="发布者" validator="required maxlength:20">
+						<input type="text" name="display_name" data-label="股票名" validator="required maxlength:20">
+						<input type="text" name="current_price" data-label="初始价格" validator="required number gt:0">
+						<input type="text" name="total_shares" data-label="股份数" validator="required number digits gt:0">
+						<input type="text" data-label="代销商" name="proxy" validator="required maxlength:20">
+						<input type="submit" value="创建股票">
 			</form>
 		</div>
 		<div class="tab-pane fade in" id="mgca">
-			<form class="col-sm-offset-2 col-sm-8" id="caForm" class="horizontal-form" role="form">
-				<div class="form-group">
-					<label class="form-label col-md-3">登录名</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="username">
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="form-label col-md-3">用户名</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="display_name">
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="form-label col-md-3">类型</label>
-					<div class="input-group">
-						<select name="account_type" class="form-control col-sm-12">
-							<option value="government">政府</option>
-							<option value="person">个人</option>
-							<option value="fundcompany">基金公司</option>
-							<option value="bank">银行</option>
-							<option value="company">实业公司</option>
-							<option value="media">媒体</option>
-						</select>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="form-label col-md-3">初始资金</label>
-					<div class="input-group">
-						<input type="text" class="form-control" name="assets">
-					</div>
-				</div>
-				<div class="container col-md-8">
-					<div class="alert alert-danger alert-login"></div>
-				</div>
-				<div class="form-group">
-					<div class="col-md-8">
-						<input type="submit" value="创建用户" class="btn btn-login">
-					</div>
-				</div>
+			<form class="col-sm-offset-3 col-sm-6 mese" action="/api/users/" id="caForm">
+				<input type="text" name="username" data-label="登录名" validator="required maxlength:20">
+				<input type="text" data-label="用户名" name="display_name" validator="required maxlength:20">
+				<select name="account_type" data-label="类型">
+					<option value="government">政府</option>
+					<option value="person">个人</option>
+					<option value="fundcompany">基金公司</option>
+					<option value="bank">银行</option>
+					<option value="company">实业公司</option>
+					<option value="media">媒体</option>
+				</select>
+				<input type="text" data-label="初始资金" name="assets" validator="number">
+				<input type="submit" value="创建用户">
 			</form>
 		</div>
 	</div>
@@ -116,75 +57,17 @@ $("a[href=#mg]").one('show.bs.tab', function(){
 	$('#mgul> li > a:first').tab('show');
 });
 $("a[href=#mgca]").one('show.bs.tab', function(){
-	var $form = $("#csForm");
-	$form.validate({
-		rules: {
-			owner: {
-				required: true,
-				maxlength: 20
-			},
-			display_name: {
-				required: true,
-				maxlength: 20
-			},
-			proxy: {
-				required: true,
-				maxlength: 20
-			},
-			current_price: {
-				required: true,
-				number: true,
-				gt: 0
-			},
-			total_shares: {
-				number: true,
-				digits: true,
-				required: true,
-				gt: 0,
-			}
+	$("#csForm").initForm({
+		callback: function(data){
+			tips("股票{display_name}创建成功！".render(data));
 		}
-	});
-	$form.submit(function(){
-		$form.validate();
-		if (!$form.valid()) return;
-		API.url("stocks").post($form.serializeObject())
-		.ok(function(data){
-			$form.clearForm();
-			toastr.success("股票{display_name}创建成功！".render(data), "提示", {timeOut:3000});
-		})
-		.paramError(function(data){
-			$form.errors(data);
-		});
 	});
 });
 $("a[href=#mgca]").one('show.bs.tab', function(){
-	var $form = $("#caForm");
-	$form.validate({
-		rules: {
-			username: {
-				required: true,
-				maxlength: 20
-			},
-			display_name: {
-				required: true,
-				maxlength: 20
-			},
-			assets: {
-				number: true
-			}
+	$("#caForm").initForm({
+		callback: function(data){
+			tips("用户{profile.display_name}创建成功！".render(data));
 		}
-	});
-	$form.submit(function(){
-		$form.validate();
-		if (!$form.valid()) return;
-		API.url("users").post($form.serializeObject())
-		.ok(function(data){
-			$form.clearForm();
-			toastr.success("用户{profile.display_name}创建成功！".render(data), "提示", {timeOut:3000});
-		})
-		.paramError(function(data){
-			$form.errors(data);
-		});
 	});
 });
 </script>

@@ -1,7 +1,7 @@
 #encoding=utf8
 from __future__ import division
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.core.exceptions import ValidationError
 
 from django.contrib.contenttypes.models import ContentType
@@ -50,7 +50,7 @@ class Stock(models.Model):
 		share = buyer.get_stock_share(self, create = True).inc_shares(shares)
 		
 	def update_price(self, price):
-		if Decimal(price) - Decimal(self.current_price) > 1e-4:
+		if abs(Decimal(price) - Decimal(self.current_price)) > 1e-4:
 			Log.objects.create(stock = self, price = price)
 			self.current_price = price
 			self.save()
@@ -80,7 +80,7 @@ class Log(models.Model):
 class ApplicationManager(models.Manager):
 
 	def fetch_suitable_applications(self, application):
-		return self.filter(stock = application.stock, price = application.price, shares__gt = Decimal(0)).exclude(command = application.command)
+		return self.filter(stock = application.stock, price = application.price, shares__gt = Decimal(0)).exclude(command = application.command).exclude(applicant_type = application.applicant_type, applicant_object_id = application.applicant_object_id)
 		
 class Application(get_inc_dec_mixin(['shares', 'price'])):
 
@@ -212,6 +212,7 @@ def process_application_updated(sender, **kwargs):
 		notifications[-1]['action'] = 'null'
 	elif quantity > 0:
 		notifications[0]['action'] = 'null'
+	print notifications
 	dispatcher.multi_send('_', data = notifications)
 		
 	stock.update_price(price)

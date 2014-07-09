@@ -91,12 +91,12 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 	@action(methods=['GET', 'PATCH'])
 	def profile(self, *args, **kwargs):
 		profile = self.get_object().profile.info
-		serializer = serializers.get_serializer_by_object(profile)(profile, data = self.request.DATA)
 		
 		if self.request.method == 'GET':
 			serializer_class = serializers.get_serializer_by_object(profile)
 			return Response(serializer_class(profile).data)
 		elif self.request.method == 'PATCH':
+			serializer = serializers.get_serializer_by_object(profile)(profile, data = self.request.DATA, partial = True)
 			if not serializer.is_valid():
 				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

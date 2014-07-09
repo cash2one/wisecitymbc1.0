@@ -30,6 +30,7 @@ class BankAPIViewSet(ReadOnlyModelViewSet):
 	serializer_class = BankSerializer
 	
 	@action(methods = ['POST'], permission_classes = [IsSubClass('CanStoreMixin')])
+	@check_captcha()
 	def store(self, request, *args, **kwargs):
 		se = serializers.StoreSerializer(data = request.DATA, actor = request.user.profile.info, bank = self.get_object(), command = 'store')
 		if se.is_valid():
@@ -38,6 +39,7 @@ class BankAPIViewSet(ReadOnlyModelViewSet):
 			return Response(se.errors, status = status.HTTP_400_BAD_REQUEST)
 		
 	@action(methods = ['POST'], permission_classes = [IsSubClass('CanStoreMixin')])
+	@check_captcha()
 	def remove(self, request, *args, **kwargs):
 		se = serializers.StoreSerializer(data = request.DATA, actor = request.user.profile.info, bank = self.get_object(), command = 'remove')
 		if se.is_valid():

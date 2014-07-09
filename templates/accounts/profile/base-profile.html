@@ -1,13 +1,13 @@
-<div class="col-md-3 hidden-xs hidden-sm"> 
+<div class="col-md-3 hidden-xs hidden-sm">
 	{% block sidebar %}
+	{% if info.account_type != 'media' %}
+	<li><a href="#as" data-toggle="pill"><i class="fa fa-2x fa-bar-chart-o"></i> 资产分析</a></li>
+	{% endif %}
 	{% if permissions.can_transfer and is_self%}
 	<li><a href="#tm" data-toggle="pill"><i class="fa fa-2x fa-money"></i> 转帐 </a></li>
 	{% endif %}
 	{% if permissions.has_report %}
 	<li><a href="#pr" data-toggle="pill"><i class="fa fa-2x fa-file-archive-o"></i> {{reports_title}}</a></li>
-	{% endif %}
-	{% if info.account_type != 'media' %}
-	<li><a href="#as" data-toggle="pill"><i class="fa fa-2x fa-bar-chart-o"></i> 资产分析</a></li>
 	{% endif %}
 	{% if permissions.publish_passage %}
 	<li><a href="#pl" data-toggle="pill"><i class="fa fa-2x fa-file-text-o"></i> 新闻 </a></li>
@@ -28,46 +28,19 @@
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane fade" id="cfpsw">
-				<main class="login" role="main">
-					<div class="container">
-						<form id="setpswForm" role="form" class="form-horizontal">
-							<div class="form-group">
-								<input type="password" name="old_password" class="form-control form-login" id="oldPassword" placeholder="输入旧密码">
-							</div>
-							<div class="form-group">
-								<input type="password" name="new_password" class="form-control form-login" id="newPassword" placeholder="输入新密码">
-							</div>
-							<div class="form-group">
-								<input type="password" name="repeat_new_password" class="form-control form-login" id="repeatNewPassword" placeholder="重复新密码">
-							</div>
-							<div class="container" style="padding-left:0">
-								<div class="input-group col-md-7" style="padding-left:0;">
-									<input type="text" name="captcha" class="form-control col-md-12" id="captcha">
-								</div>
-								<div class="col-md-5">
-									<img id="captchaImg" class="pull-right"/>
-								</div>			
-							</div>	
-							<div class="alert alert-danger alert-login"></div>			
-							<div class="form-group">
-								<input type="submit" value="修改" class="btn btn-login">
-							</div>
-						</form>
-					</div>
-				</main>
+				<form id="setpswForm" class="mese col-md-offset-3 col-md-6" action="/api/users/my/set_password/" captcha>
+					<input type="password" name="old_password" data-label="旧密码" validator="required">
+					<input type="password" name="new_password" data-label="新密码" id="newPassword" validator="required">
+					<input type="password" name="repeat_new_password" data-label="重复密码" validator="required equalTo:#newPassword">			
+					<input type="submit" value="修改">
+				</form>
 			</div>
 			<div class="tab-pane fade" id="cfinfo">
-				<main class="login" role="main">
-					<div class="container">
-						<form id="configForm" role="form" class="form-horizontal">
-							{% block config_form %}
-							{% endblock %}
-							<div class="form-group">
-								<input type="submit" class="btn btn-login" value="修改">
-							</div>
-						</form>	
-					</div>
-				</main>
+				<form id="configForm" action="/api/users/my/profile/" method="patch" class="mese col-md-offset-3 col-md-6">
+					{% block config_form %}
+					{% endblock %}
+					<input type="submit" value="修改">
+				</form>	
 			</div>
 		</div>
 	</div>
@@ -154,39 +127,11 @@
 				<h4>
 					转帐规则：每转帐一次需从账户中扣除千分之一的手续费。
 				</h4>
-				<form id="transferForm" role="form" class="form-horizontal col-md-8">
-					<div class="form-group">
-						<label for="money" class="control-label col-sm-4">请输入转帐金额</label>
-						<div class="col-sm-8">
-							<input type="text" id="money" name="money" class="form-control">
-						</div>
-					</div>
-					<div class="form-group">
-						<label for="to" class="control-label col-sm-4">请输入转帐对象名称</label>
-						<div class="col-sm-8">
-							<input type="text" id="to" name="to" class="form-control">
-						</div>
-					</div>
-					<div class="form-group">
-						<label for="captcha" class="control-label col-sm-4">验证码</label>
-						<div class="col-sm-4">
-							<input type="text" id="captcha" name="captcha" class="form-control">
-						</div>
-						<div class="col-sm-4">
-							<img id="transferCaptchaImg" />
-						</div>
-					</div>
-					<div class="alert alert-danger alert-login" id="transferError"></div>
-					<div class="form-group">
-						<div class="col-sm-12">
-							<input type="submit" class="btn btn-login" value="开始转帐" >
-						</div>
-					</div>
+				<form id="transferForm"class="mese col-md-offset-3 col-md-6" action="/api/transfer/" captcha>
+							<input type="text" name="money" data-label="转账金额">
+							<input type="text" name="to" data-label="转账对象">
+							<input type="submit" value="开始转帐">
 				</form>
-				<div id="transferResult">
-					<p id="transferText">转帐成功：您已将 ￥{money} 转给 {transfer_to.profile.display_name}。</p>
-					<button id="transferContinue" class="btn btn-link">继续转帐</button>
-				</div>
 			</div>
 		</div>
 	</div>
@@ -201,16 +146,17 @@
 		</div>
 	{% endif %}
 	{% if permissions.has_report %}
-		<div class="tab-pane fade" id="pr">
+		<div class="tab-pane fade in" id="pr">
 		{% if is_self %}
 			<form id="reportsUploadForm">
-				<div class="fileinput-button btn btn-primary">
+				<div class="fileinput-button btn btn-mese2014-success">
 					<span>添加文件...</span>
-					<input type="file" name="file" id="file" />
+					<input type="file" name="file">
 				</div>
 			</form>
 		{% endif %}
-			<ul id="reportsFilesList" class="list-group"></ul>
+			<br>
+			<ul id="reportsFilesList" class="list-group mese2014-list-group"></ul>
 		</div>
 	{% endif %}
 {% endblock %}
@@ -248,43 +194,20 @@ $('a[href="#as"]').one('show.bs.tab',function(){
 
 {% if permissions.can_transfer and is_self %}
 <script type="text/javascript">
-$("a[href='#tmlog']").one('show.bs.tab', function(){
+$("a[href='#tmlog']").on('show.bs.tab', function(){
 	API.list({
 		prev: 'tmlogPrevBtn',
 		next: 'tmlogNextBtn',
 		apiUrl: API.url('transfer').url('logs'),
 		container: 'tmlogsContainer',
-		template: '<li class="list-group-item">转给 <a href="{to.profile.url}">{to.profile.display_name}</a> {money} 元.<span class="pull-right">{created_time}</span></li>'
+		template: '<li class="list-group-item">转给 <a href="{transfer_to.url}">{transfer_to.display_name}</a> {money} 元.<span class="pull-right">{created_time}</span></li>'
 	});
 });
 $("a[href='#tm']").one('show.bs.tab',function(){
-	//$("#tmlogPrevBtn #tmlogNextBtn").hide();
-	$("a[href='#tmop']").click();
-	$("#transferCaptchaImg").captcha();
-	var $form = $("#transferForm"), $result = $("#transferResult").hide(), $text = $("#transferText");
-	
-	$("#transferContinue").click(function(){
-		$result.hide();
-		$form.show();
-	});
-	
-	$form.formAjaxSubmit({
-		apiUrl: API.url('transfer'),
-		callback: function(xhr) {
-			xhr.done(function(data){
-				$form.clearForm();
-				$form.hide();
-				$result.show();
-				$text.render(data);
-			})
-			.paramError(function (data) {
-				for (var i in data) {
-					$form.find("[name="+i+']').error();
-				}
-			}).
-			captchaError(function(data) {
-				$("#captcha").error();
-			});
+	$("a[href='#tmlog']").tab('show');
+	$("#transferForm").initForm({
+		callback: function(data){
+			tips("转帐成功:\n您已将 ￥{money} 转给 {transfer_to.display_name}。".render(data));
 		}
 	});
 });
@@ -327,6 +250,7 @@ $("a[href='#pr']").one('show.bs.tab', function(){
 	});
 	
 	$uploadForm.fileupload({
+		iframe: true,
 		url: '/api/files/private/{{reports_field}}/',
 		autoUpload: true,
 		dataType: 'json',
@@ -345,51 +269,22 @@ if (!$("#configForm").find("input").not(":submit").length) $('a[href="#cfinfo"]'
 $("a[href='#cf']").one('show.bs.tab', function(){
 //config
 	$('#cful>li>a:first').tab('show');
-	var $configForm = $("#configForm"), api = API.url("users").url("my").url("profile");
-	api.get().ok(function(data){
-		for (var field in data) {
-			$configForm.find("[name="+field+"]").val(data[field]);
-		}
+	var $configForm = $("#configForm");
+	$configForm.find('input, textarea, select').not(':submit').each(function(){
+		var $this = $(this);
+		$this.val(window.data.profile[$this.attr('name')]);
 	});
-	$configForm.submit(function(e){
-		e.preventDefault();
-		API.url('users').url('my').url('profile').patch($configForm.serializeObject())
-		.paramError(function(data){
-			for (var field in data) {
-				$configForm.find("[name="+field+"]").error();
-			}
-		})
-		.ok(function(data){
-			window.location.href="/accounts/profile/";
-		});
-		return false;
+	$configForm.initForm({
+		callback: function() {
+			//tips("账户设置成功！");
+			window.location.href="";
+		}
 	});
 //set password
-	$("#captchaImg").captcha();
-	var $form = $("#setpswForm"), $old=$("#oldPassword"), $new=$("#newPassword"), $rep = $("#repeatNewPassword"), reg = /^.+$/;
-	$form.submit(function(e){
-		e.preventDefault();
-		if (!$new.val()||!reg.test($new.val())) {
-			$new.error();
-			return false;
+	$("#setpswForm").initForm({
+		callback: function(){
+			tips("密码设置成功！");
 		}
-		if ($new.val()!==$rep.val()){
-			$rep.error();
-			return false;
-		}
-		API.url('users').url('my').url('set_password').post($form.serializeObject())
-		.ok(function(data) {
-			console.log('ok');
-			window.location.href = '/';
-		})
-		.paramError(function(){
-			$old.error();
-		})
-		.captchaError(function(){
-			console.log('captcha error');
-			$form.find("[name=captcha]").error();
-		});
-		return false;
 	});
 });
 </script>

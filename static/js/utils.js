@@ -1,3 +1,4 @@
+emptyFunc = function(_){return _};
 function JsonToStr(o) {
 	if (o === undefined) {
 		return "";
@@ -86,7 +87,6 @@ $.fn.error = function () {
 
 $.fn.captcha = function() {
 	var $this = $(this);
-	$this.css("max-width", "100%").addClass('pull-left');
 	if ($this.is('img')){
 		function change(){
 			$this.attr("src", "/captcha/");
@@ -117,7 +117,7 @@ $.fn.clearForm = function() {
 
 $.fn.formAjaxSubmit = function(config) {
 	var $form = $(this), 
-		apiUrl = config.apiUrl, verifyFunc = config.verfiy||function(){return true}, callback = config.callback||function(){},
+		apiUrl = config.apiUrl, verifyFunc = config.verfiy||function(){return true}, callback = config.callback||emptyFunc,
 	captcha = $form.find('img[name="captcha"]'), captchaInput;
 	if (captcha.length) {
 		captcha.captcha();
@@ -247,7 +247,7 @@ $.fn.formAjaxSubmit = function(config) {
 			}
 			var apiUrl = config.apiUrl, 
 				$next = $("#"+config.next), $prev = $("#"+config.prev), $container= $("#"+config.container), 
-				processData = config.processData||function(){}, template = config.template||'';
+				processData = config.processData||emptyFunc, template = config.template||'';
 			$next.click(click).hide();
 			$prev.click(click).hide();
 			execute();
@@ -296,7 +296,112 @@ $.validator.addMethod('lt', function(value, element, params){
 	return this.optional(element)||parseFloat(value)<params;
 }, $.validator.format("输入的数值必须小于{0}"));
 
+$.fn.initForm = function (config) {
+	if (!(this.is('form'))) return;
+	this.data('callback', config.callback||{});
+	this.data('processData', config.processData||emptyFunc);
+};
+
 $(function(){
+//process forms
+	$("form.mese").each(function(){
+		function getColClassName(n) {return 'col-sm-'+n;}
+		var $form = $(this).addClass('form-horizontal'), isCaptcha = $form.attr("captcha")!==undefined, 
+			method = $form.attr('method')||'post', action = $form.attr('action'),
+			$inputWidth = parseInt($form.attr("input-width"))||9,
+			$inputCol = getColClassName($inputWidth), $labelCol = getColClassName(12-$inputWidth),
+			$inputs = $form.find("input, select, textarea").not(":submit"),
+			$submits = $form.find("input[type=submit]"),
+			submitsCount = $submits.length;
+			
+		if (isCaptcha) {
+			var $captchaInput = $('<input>').addClass('form-control').attr({name: 'captcha', type: 'text'});
+			$('<div/>')
+			.addClass($inputCol)
+			.append($('<div class="col-sm-4"></div>').addClass('no-padding').append($captchaInput))
+			.append($("<div/>").addClass("col-sm-8").append($("<img title='看不清？点击换一张'/>").addClass("captcha")))
+			.wrap($("<div/>").addClass("form-group")).parent()
+			.prepend($("<label>验证码</div>").addClass("control-label "+$labelCol))
+			.insertBefore($submits.first());
+			$form.captcha();
+		}
+		
+		$('<div/>')
+		.addClass('alert alert-danger alert-login')
+		.wrap('<div class="form-group"></div>')
+		.insertBefore($submits.first());
+		
+		var rules = {};
+		
+		$inputs.each(function(){
+			var $input = $(this).addClass('form-control'), $data = $input.data(),
+			validator = {};
+			$(($input.attr("validator")||"").split(" ")).each(function(){
+				if (this.indexOf(':')>=0) {
+					var _ = this.split(':'), val = isNaN(parseFloat(_[1]))?_[1]:parseFloat(_[1]);
+					validator[_[0]] = val;
+				} else if (this.length) {
+					validator[this] = true;
+				}
+			});
+			console.log(validator);
+			rules[$input.attr('name')] = validator;
+			$input
+			.wrap($("<div/>").addClass($inputCol))
+			.parent()
+			.wrap($("<div/>").addClass("form-group"))
+			.before($("<label>{label}</div>".render($data)).addClass("control-label "+$labelCol));
+			
+		});
+		$form.validate({rules: rules});
+		$submits.wrapAll('<div class="form-group"/>').each(function(){
+			var $submit = $(this);
+			$submit.addClass("btn btn-login").wrap($("<div/>").addClass(getColClassName(Math.round(12/submitsCount))));
+		});
+		
+		if (submitsCount===1) {
+			$form.submit(function(){
+				$form.validate();
+				if (!$form.valid()) return false;
+				var func = $form.data('processData')||emptyFunc, data = $form.serializeObject(), 
+					callback = $form.data('callback')||emptyFunc;
+				func(data);
+				API.raw(action)[method](data)
+				.ok(function(data){
+					$form.clearForm();
+					callback(data);
+				})
+				.paramError(function(data){
+					$form.errors(data);
+				})
+				.captchaError(function(){
+					$captchaInput.error();
+				});
+			});
+		} else {
+			$submits.click(function(){
+				var $this = $(this), action = $this.attr('action');
+				$form.validate();
+				if (!$form.valid()) return false;
+				var func = $form.data('processData')||emptyFunc, data = $form.serializeObject(), 
+					callback = $form.data('callback');
+				callback = callback?callback[$this.attr('name')]:emptyFunc;
+				func(data);
+				API.raw(action)[method](data)
+				.ok(function(data){
+					$form.clearForm();
+					callback(data);
+				})
+				.paramError(function(data){
+					$form.errors(data);
+				})
+				.captchaError(function(){
+					$captchaInput.error();
+				});
+			});		
+		}
+	});
+
 	var allows = [];
 	function logic(date) {
 		if (date.getDayOfYear()===(new Date()).getDayOfYear()) {
@@ -315,3 +420,7 @@ $(function(){
 		showSeconds: true
 	});
 });
+
+window.tips = function(text) {
+	toastr.success(text, "提示", {timeOut:3000});
+};

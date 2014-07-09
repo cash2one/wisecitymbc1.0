@@ -31,7 +31,6 @@ class ApplySerializer(serializers.Serializer):
 		
 	def validate_money(self, attrs, source):
 		money = attrs[source]
-		print self.actor.check_assets(money)
 		if not self.actor.check_assets(money):
 			raise serializers.ValidationError(u"账户余额不足。")
 		

@@ -60,7 +60,6 @@ padding:6px;}
   font-weight:500;
   font-size:14px;
   line-height:20px;
-  text-transform:uppercase;
 }
 @media (max-width: 767px) {
   
@@ -381,6 +380,13 @@ color:#CCC;font-size: 1em;border-radius:0px;margin-top:10px;}
 	border-left-color: transparent;
 	border-right-color: transparent;
 	border-radius:0px;
+}
+.no-padding {
+	padding-left: 0;
+}
+img.captcha {
+	width:100%;
+	cursor: pointer;
 }
 .blank {
 	background-color: red;

@@ -62,6 +62,7 @@
 			});
 		$("#uploadForm").fileupload({
 			url: "/api/files/public/",
+			iframe: true,
 			autoUpload: true,
 			dataType: 'json',
 			formAcceptCharset: "unicode",
@@ -73,9 +74,9 @@
 				console.log(p);
 			}
 		});
-		$("#file").change(function(){
+		/*$("#file").change(function(){
 			$("#uploadForm").fileupload("send");
-		});
+		});*/
 		$("#p_new").submit(function(e){
 			e.preventDefault();
 			var data = $(this).serializeObject();

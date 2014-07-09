@@ -15,15 +15,11 @@
 {% endblock %}
 
 {% block config_form %}
-<div class="form-group">
-	<select name="gender" class="form-control">
-		<option value="M">男</option>
-		<option value="F">女</option>
-	</select>
-</div>
-<div class="form-group">
-	<input type="text" placeholder="职位" name="position" class="form-control">
-</div>
+<select name="gender" data-label="性别">
+	<option value="M">男</option>
+	<option value="F">女</option>
+/select>
+<input type="text" data-label="职位" name="position" validator="maxlength:20">
 {% endblock %}
 
 {% block tabs %}

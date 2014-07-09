@@ -94,7 +94,8 @@ class StockAPIViewSet(ModelViewSet):
 			return Response(serializers.StockSerializer(serializer.object).data)
 		else:
 			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-		
+			
+	@check_captcha()
 	def apply(self, request, type, *args, **kwargs):
 		se = serializers.ApplySerializer(type, self.get_object(), request.user.profile.info, data = request.DATA)
 		if se.is_valid():
@@ -107,7 +108,6 @@ class StockAPIViewSet(ModelViewSet):
 		return Response(res, status = s)
 		
 	@action(methods = ['GET'])
-	@check_captcha
 	def data(self, request, *args, **kwargs):
 		stock = self.get_object()
 		data = stock.logs.values('created_time', 'price').order_by('-created_time')

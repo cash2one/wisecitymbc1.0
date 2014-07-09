@@ -16,7 +16,9 @@ from captcha.decorators import check_captcha
 def detail(request):
 	fund_id = request.REQUEST.get('uid', 0)
 	fund = get_object_or_404(models.Fund, pk = fund_id)
-	return Response({'object': fund, 'uid': fund_id}, template_name = 'securities/funds/detail.html')
+	is_self = (fund.published and fund.account and fund.account.profile.user.id == request.user.id) or \
+						(not fund.published and fund.publisher.profile.user.id == request.user.id)
+	return Response({'object': fund, 'uid': fund_id,'is_self': is_self}, template_name = 'securities/funds/detail.html')
 	
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])

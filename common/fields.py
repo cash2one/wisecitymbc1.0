@@ -2,6 +2,7 @@ from functools import partial
 from django.db import models
 from timeline.fields import FinancialYearField
 from datetime import timedelta
+from rest_framework.fields import WritableField
 
 DecimalField = partial(
 		models.DecimalField,
@@ -10,9 +11,16 @@ DecimalField = partial(
 		default = 0
 )
 
+class TimeDeltaSerializerField(WritableField):
+
+	def __init__(self, *args, **kwargs):
+		kwargs.pop('min_value','')
+		super(TimeDeltaSerializerField, self).__init__(*args, **kwargs)
+
 class TimeDeltaField(models.PositiveIntegerField):
 
 	descrption = "datetime.timedelta"
+	__metaclass__ = models.SubfieldBase
 	
 	def get_prep_value(self, value):
 		if isinstance(value, timedelta):
@@ -34,4 +42,6 @@ class TimeDeltaField(models.PositiveIntegerField):
 		if isinstance(value, (str, unicode)):
 			h,m = map(int, value.split(':'))
 			value =  h*3600+m*60
+		val = value / 60
+		return "%.2d:%.2d" % (val // 60, val % 60)
 		return value

@@ -22,52 +22,20 @@
 {% endblock %}
 
 {% block config_form %}
-<div class="form-group">
-	<input type="text" placeholder="版块" name="section" class="form-control">
-</div>
-<div class="form-group">
-	<input type="text" placeholder="行业" name="industry" class="form-control">
-</div>
-<div class="form-group">
-	<input type="text" placeholder="联系方式" name="contact" class="form-control">
-</div>
-<div class="form-group">
-	<textarea type="text" placeholder="简介" cols="3" rows="5" name="description" class="form-control"></textarea>
-</div>
+<input type="text" data-label="版块" name="section" validator="maxlength:20">
+<input type="text" data-label="行业" name="industry" validator="maxlength:20">
+<input type="text" data-label="联系方式" name="contact" validator="maxlength:20">
+<textarea data-label="简介" cols="3" rows="5" name="description" validator="maxlength:140"></textarea>
 {% endblock %}
 
 {% block tabs %}
 {% if not is_self and info.account_type == 'bank' and user.profile.info.account_type != 'media' %}
 <div class="tab-pane fade" id="atm">
-	<main class="login" role="main">
-		<div class="container">
-			<form id="atmForm" role="form" class="form-horizontal">
-				<div class="form-group">
-					<label for="atmMoney" class="form-label col-sm-2">资金</label>
-					<div class="col-sm-10">
-						<input type="text" class="form-control form-login col-sm-10" name="money">
-					</div>
-				</div>
-				<div class="form-group">
-					<label for="atmInputCaptcha" class="form-label col-sm-2">验证码</label>
-					<div class="col-sm-5">
-						<input type="text" name="captcha" class="form-control">
-					</div>
-					<div class="col-md-5">
-						<img name="captcha" class="pull-right"/>
-					</div>	
-				</div>	
-				<div class="form-group">
-					<div class="col-sm-6">
-						<input type="submit" value="存款" name="store" class="btn btn-login">
-					</div>
-					<div class="col-sm-6">
-						<input type="submit" value="取款" name="remove" class="btn btn-login">
-					</div>
-				</div>
-			</form>
-		</div>
-	</main>
+	<form id="atmForm" class="col-md-offset-3 col-md-6 mese" captcha>
+		<input type="text" data-label="金额" name="money" validator="required number gt:0">
+		<input type="submit" value="存款" name="store" action="/api/banks/{{info.id}}/store/">
+		<input type="submit" value="取款" name="remove" action="/api/banks/{{info.id}}/remove/">
+	</form>
 </div>
 {% endif %}
 
@@ -103,24 +71,15 @@
 {% if not is_self and info.account_type == 'bank' and user.profile.info.account_type != 'media' %}
 <script type="text/javascript">
 $('a[href="#atm"]').one('show.bs.tab', function(){
-	var $form = $("#atmForm"), $captchaImg = $form.find("img[name='captcha']"), $captchaInput = $form.find("input[name='captcha']");
-	$captchaImg.captcha();
-	$form
-	.submit(function(e){
-		e.preventDefault();
-		return false;
-	})
-	.find("input[type='submit']").click(function(){
-		var $name = $(this).attr('name'), apiUrl = API.url("banks").id(window.data.profile.id).url($name);
-		apiUrl.post($form.serializeObject())
-		.captchaError(function(){
-			$captchaInput.error();
-		}).paramError(function(){
-			$form.find("[name='money']").error();
-		})
-		.ok(function(){
-			window.location.href="/accounts/profile/#as";
-		});
+	$("#atmForm").initForm({
+		callback: {
+			store: function(data){
+				tips("存款成功！");
+			},
+			remove: function(data) {
+				tips("取款成功！");
+			}
+		}
 	});
 });
 </script>

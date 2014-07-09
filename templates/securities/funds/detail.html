@@ -41,63 +41,25 @@
 <div class="tab-content">
 	<div class="tab-pane fade in" id="buy">
 		<div class="col-md-6 col-md-offset-3">
-			<form role="form" id="buyForm" class="horizontal-form">
-				<div class="form-group">
-				<label class="col-sm-3 form-label" for="opPrice">资金</label>
-					<div class="input-group">
-							<input id="opPrice" type="text" name="money" class="form-control form-login">
-					</div>
-				</div>
-				<div class="form-group">
-				<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="input-group">
-						<div class="col-sm-4" style="padding-left:0">
-							<input type="text" name="captcha" class="form-control">
-						</div>
-						<div class="col-md-8">
-							<img name="captcha"/>
-						</div>	
-					</div>
-				</div>
-				<div class="container">
-				<div class="alert alert-danger alert-login"></div>
-				</div>
-				<div class="form-group">
-					<div class="col-sm-10 col-sm-offset-1">
-						<input type="submit"class="btn btn-login" value="确认">
-					</div>					
-				</div>
+			<form id="buyForm" class="mese" captcha action="/api/funds/{{object.id}}/buy/">
+				<input type="text" name="money" data-label="资金" validator="required number gt:0">
+				<input type="submit" value="确认">
+			</form>
+		</div>
+	</div>
+	<div class="tab-pane fade in" id="cf">
+		<div class="col-md-6 col-md-offset-3">
+			<form id="cfForm" class="mese" captcha action="/api/funds/{{object.id}}/" method="patch">
+				<input type="text" name="return_rate" data-label="回报率" validator="required number gt:0" value="{{object.return_rate}}">
+				<input type="submit" value="修改">
 			</form>
 		</div>
 	</div>
 	<div class="tab-pane fade in" id="ransom">
 		<div class="col-md-6 col-md-offset-3">
-			<form role="form" id="ransomForm" class="horizontal-form">
-				<div class="form-group">
-				<label class="col-sm-3 form-label" for="opPrice">金额</label>
-					<div class="input-group">
-							<input id="opPrice" type="text" name="money" class="form-control form-login">
-					</div>
-				</div>
-				<div class="form-group">
-				<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="input-group">
-						<div class="col-sm-4" style="padding-left:0">
-							<input type="text" name="captcha" class="form-control">
-						</div>
-						<div class="col-md-8">
-							<img name="captcha" class="pull-right"/>
-						</div>	
-					</div>
-				</div>
-				<div class="container">
-				<div class="alert alert-danger alert-login"></div>
-				</div>
-				<div class="form-group">
-					<div class="col-sm-10 col-sm-offset-1">
-						<input type="submit"class="btn btn-login" value="确认">
-					</div>					
-				</div>
+			<form id="ransomForm" class="mese" action="/api/funds/{{object.id}}/ransom/" captcha>
+				<input type="text" name="money" data-label="金额" validator="required number gt:0">
+				<input type="submit" value="确认">
 			</form>
 		</div>
 	</div>
@@ -112,6 +74,9 @@
 {% if object.published %}
 	<li><a href="#ransom" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请赎回</a></li>
 {% endif %}
+{% if is_self %}
+	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>设置</a></li>
+{% endif %}
 </ul>
 {% endblock %}
 {% block extra_script %}
@@ -119,48 +84,24 @@
 $(function(){
 	window.uid = {{object.id}};
 	window.api = API.url("funds").id(window.uid);
-});
-$("a[href='#buy']").one('show.bs.tab', function(){
-	var $form = $("#buyForm");
-	$form.captcha();
-	$form.validate({
-		rules: {
-			money: {
-				required: true,
-				number: true,
-				gt: 0
-			}
+	$("#cfForm").initForm({
+		callback: function(){
+			window.location.href="?uid="+window.uid;
 		}
 	});
-	$form.submit(function(){
-		console.log($form);
-		$form.validate();
-		if (!$form.valid()) return;
-		api.url("buy").post($form.serializeObject())
-		.ok(function(data){
-			window.location.href="?uid="+window.uid;
-		});
+});
+$("a[href='#buy']").one('show.bs.tab', function(){
+	$("#buyForm").initForm({
+	  callback: function(){
+	    tips("购买成功！");
+	  }
 	});
 });
 $("a[href='#ransom']").one('show.bs.tab', function(){
-	var $form = $("#ransomForm");
-	$form.captcha();
-	$form.validate({
-		rules: {
-			money: {
-				required: true,
-				number: true,
-				gt: 0
-			}
-		}
-	});
-	$form.submit(function(){
-		$form.validate();
-		if (!$form.valid()) return;
-		api.url("ransom").post($form.serializeObject())
-		.ok(function(data){
-			window.location.href="?uid="+window.uid;
-		});
+	$("#buyForm").initForm({
+	  callback: function(){
+	    tips("赎回申请已发出，请耐心等候。");
+	  }
 	});
 });
 </script>

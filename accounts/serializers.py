@@ -155,8 +155,9 @@ class AccountField(serializers.WritableField):
 		).data
 		
 	def field_from_native(self, data, files, field_name, into):
+		if self.partial and not data.get(field_name, None):
+			return
 		enter_data = data[field_name]
-		print enter_data,'a'
 		if isinstance(enter_data, models.Account):
 			cls = ContentType.objects.get(app_label = 'accounts', model = enter_data.__class__.__name__)
 			into[field_name] = enter_data
@@ -168,8 +169,6 @@ class AccountField(serializers.WritableField):
 			data = models.filter_accounts(display_name = enter_data)
 			if not data:
 				raise serializers.ValidationError(u"用户%s不存在。" % enter_data)
-				into[field_name] = None
-				return None
 			else:
 				data = data[0]
 				enter_data = {'type': data['account_type'], 'id': data['id']}

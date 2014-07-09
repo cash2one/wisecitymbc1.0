@@ -33,27 +33,9 @@
 	{% if not object.published and not is_self and perms.bonds.has_bond %}
 	<div class="tab-pane fade in" id="buy">
 		<div class="col-md-6 col-md-offset-3">
-			<form role="form" id="buyForm" class="horizontal-form">
-				<div class="form-group">
-					<label class="col-sm-3 form-label" for="opPrice">资金</label>
-					<div class="col-sm-9">
-						<input id="opPrice" type="text" name="money" class="form-control form-login">
-					</div>
-				</div>
-				<div class="form-group">
-					<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="col-sm-4">
-						<input type="text" name="captcha" class="form-control">
-					</div>
-					<div class="col-md-5">
-						<img name="captcha" class="pull-right"/>
-					</div>	
-				</div>
-				<div class="form-group">
-					<div class="col-sm-10 col-sm-offset-1">
-						<input type="submit"class="btn btn-login" value="确认">
-					</div>					
-				</div>
+			<form id="buyForm" class="mese" action="/api/bonds/{{object.id}}/buy/" captcha>
+				<input type="text" name="money" data-label="资金" validator="required number gt:0">
+				<input type="submit" value="确认">
 			</form>
 		</div>
 	</div>
@@ -61,27 +43,9 @@
 	{% if is_self %}
 	<div class="tab-pane fade in" id="config">
 		<div class="col-md-6 col-md-offset-3">
-			<form role="form" id="cfgForm" class="horizontal-form">
-				<div class="form-group">
-					<label class="col-sm-3 form-label" for="cfgProfit">利率</label>
-					<div class="col-sm-9">
-						<input id="cfgProfit" type="text" name="profit_rate" class="form-control form-login" value="{{object.profit_rate}}">
-					</div>
-				</div>
-				<div class="form-group">
-					<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="col-sm-4">
-						<input type="text" name="captcha" class="form-control">
-					</div>
-					<div class="col-md-5">
-						<img name="captcha" class="pull-right"/>
-					</div>	
-				</div>
-				<div class="form-group">
-					<div class="col-sm-10 col-sm-offset-1">
-						<input type="submit"class="btn btn-login" value="确认">
-					</div>					
-				</div>
+			<form role="form" id="cfgForm" class="mese" captcha method="patch" action="/api/bonds/{{object.id}}/">
+				<input type="text" name="profit_rate" data-label="回报率" value="{{object.profit_rate}}" validator="required number gt:0 lt:100">
+				<input type="submit" value="确认">
 			</form>
 		</div>		
 	</div>
@@ -115,43 +79,14 @@ function jump(){
 	window.location.href="?uid="+window.uid;
 }
 $("a[href='#config']").one('show.bs.tab', function(){
-	var $form = $("#cfgForm");
-	$form.captcha();
-	$form.validate({
-		rules: {
-			profit_rate: {
-				required: true,
-				number: true,
-				gt: 0,
-				lt: 100
-			}
-		}	
-	});
-	$form.submit(function(){
-		$form.validate();
-		if (!$form.valid()) return;
-		api.patch($form.serializeObject()).ok(jump);
-	});
+  $("#cfgForm").initForm({
+    callback: jump
+  });
 });
 $("a[href='#buy']").one('show.bs.tab', function(){
-	var $form = $("#buyForm");
-	$form.captcha();
-	$form.validate({
-		rules: {
-			money: {
-				required: true,
-				number: true,
-				gt: 0,
-			}
-		}
-	});
-	$form.submit(function(){
-		console.log($form);
-		$form.validate();
-		if (!$form.valid()) return;
-		api.url("buy").post($form.serializeObject())
-		.ok(jump);
-	});
+  $("#buyForm").initForm({
+    callback: jump
+  });
 });
 </script>
 {% endblock %}

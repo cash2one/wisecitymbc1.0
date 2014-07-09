@@ -24,6 +24,7 @@ from rest_framework.compat import get_concrete_model, six
 from rest_framework.settings import api_settings
 from timeline.serializer_fields import FinancialYearField
 import timeline.fields
+import common.fields
 
 
 # Note: We do the following so that users of the framework can use this style:
@@ -653,6 +654,7 @@ class ModelSerializer(Serializer):
 
     field_mapping = {
         models.AutoField: IntegerField,
+				common.fields.TimeDeltaField: common.fields.TimeDeltaSerializerField,
         models.FloatField: FloatField,
         models.IntegerField: IntegerField,
         models.PositiveIntegerField: IntegerField,

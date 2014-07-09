@@ -2,36 +2,43 @@
 {% block main %}
 <div class="container">
 	<div class="col-md-4">
-		<h3><a href="#main" data-toggle="pill">{{object.display_name}}</a></h3>
+		<h3>{{object.display_name}}</h3>
 	</div>
 	<div class="col-md-4">
-		<h4>现价: {{object.current_price}}</h4>
+		<h3>现价: {{object.current_price}}</h3>
 	</div>
 </div>
 	{% block tab_content %}
 <div class="tab-content">
 	<div class="tab-pane fade in active" id="main">
-		<div class="panel panel-default panel-mese2014">
-			<div class="panel-heading">最新申请&nbsp;<button class="btn btn-link" id="refreshApplications">刷新</button></div>
+		<div class="container">
+			<div class="chart-container col-md-12 hidden-xs" id="stock-chart">
+			</div>
 		</div>
-		<table class="table">
-			<thead>
-				<th>出价</th>
-				<th>股份</th>
-				<th>操作</th>
-				<th>时间</th>
-			</thead>
-			<tbody id="applicationsBody">
-			{% for app in applications %}
-				<tr>
-					<th>{{app.price}}</th>
-					<th>{{app.shares}}</th>
-					<th>{%if app.type == 'SELL'%}卖出{%else%}买入{%endif%}</th>
-					<th>{{app.created_time}}</th>
-				</tr>
-			{% endfor %}
-			</tbody>
-		</table>
+		<br>
+		<div class="container">
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">最新申请&nbsp;<button class="btn btn-link" id="refreshApplications">刷新</button></div>
+			</div>
+			<table class="table">
+				<thead>
+					<th>出价</th>
+					<th>股份</th>
+					<th>操作</th>
+					<th>时间</th>
+				</thead>
+				<tbody id="applicationsBody">
+				{% for app in applications %}
+					<tr>
+						<th>{{app.price}}</th>
+						<th>{{app.shares}}</th>
+						<th>{%if app.type == 'SELL'%}卖出{%else%}买入{%endif%}</th>
+						<th>{{app.created_time}}</th>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
 		<div class="container">
 			<div class="panel panel-default panel-mese2014">
 				<div class="panel-heading">我的申请</div>
@@ -63,41 +70,11 @@
 	</div>
 	<div class="tab-pane fade in" id="op">
 		<div class="col-md-6 col-md-offset-3">
-			<form role="form" id="opForm" class="horizontal-form">
-				<div class="form-group">
-				<label class="col-sm-3 form-label" for="opPrice">价格</label>
-					<div class="input-group">
-							<input id="opPrice" type="text" name="price" class="form-control form-login">
-					</div>
-				</div>
-				<div class="form-group">
-				<label class="col-sm-3 form-label" for="opShares">股份数</label>
-					<div class="input-group">
-							<input id="opShares" type="text" name="shares" class="form-control form-login">
-					</div>
-				</div>
-				<div class="form-group">
-				<label for="opInputCaptcha" class="form-label col-sm-3">验证码</label>
-					<div class="input-group" >
-						<div class="col-sm-4" style="padding-left:0">
-							<input type="text" name="captcha" class="form-control">
-						</div>
-						<div class="col-md-8">
-							<img name="captcha"/>
-						</div>	
-					</div>
-				</div>
-				<div class="container">
-					<div class="alert alert-danger alert-login"></div>
-				</div>
-				<div class="form-group">
-					<div class="col-sm-6">
-						<input type="submit" name="sell" class="btn btn-login" value="卖出">
-					</div>
-					<div class="col-sm-6">
-						<input type="submit" name="buy" class="btn btn-login" value="买入">
-					</div>					
-				</div>
+			<form class="mese" captcha id="opForm">
+				<input id="opPrice" type="text" name="price" data-label="价格" validator="required number min:0">
+				<input id="opShares" type="text" name="shares" data-label="股份数" validator="required number digits min:0">
+				<input type="submit" name="sell" value="卖出" action="/api/stocks/{{object.id}}/sell/">
+				<input type="submit" name="buy" value="买入" action="/api/stocks/{{object.id}}/buy/">
 			</form>
 		</div>
 	</div>
@@ -114,6 +91,7 @@
 </div>
 {% block sidebar_menu %}
 <ul class="nav nav-pills nav-stacked nav-utinfo">
+	<li><a href="#main" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>行情</a></li>
 	<li><a href="#op" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>操作</a></li>
 </ul>
 {% endblock %}
@@ -121,38 +99,20 @@
 {% block extra_script %}
 <script type="text/javascript">
 $('a[href="#op"]').one('show.bs.tab', function(){
-	var $form = $("#opForm");
-	$form.find("img[name='captcha']").captcha();
-	$form.validate({
-		rules: {
-			price: {
-				required: true,
-				number: true,
-				min:0
+	$("#opForm").initForm({
+		callback: {
+			buy: function(data){
+				tips('成功申请购买股票{stock.display_name}。'.render(data));
 			},
-			shares: {
-				required: true,
-				number: true,
-				digits: true
-			}
+			sell: function(data){
+				tips('成功申请卖出股票{stock.display_name}。'.render(data));
+			},
 		}
-	});
-	$form.find("input[type=submit]").click(function(){
-		var $this = $(this);
-		$form.validate();
-		if (!$form.valid()) return false;
-		API.url("stocks").id(uid).url($this.attr('name')).post($form.serializeObject())
-		.ok(function(data){
-			window.location.href="?uid="+window.uid;
-		});
-	});
-	$form.submit(function(e){
-		e.preventDefault();
-		return false;
 	});
 });
 $(function(){
 	window.uid = {{uid}};
+	$('a[href="#main"]').tab('show');
 	$("a.delApp").on('click', function(){
 		var $this = $(this), $id = $this.attr("data-id");
 		API.url("stocks").url("applications").id($id).delete()
@@ -160,6 +120,77 @@ $(function(){
 			$this.parent().parent().remove();
 		});
 	});
+	function process(data) {
+		for (var i=0;i<data.length;i++) {
+			var obj = data[i];
+			data[i] = {
+				x: new Date(obj.created_time.replace('-',',').replace(' ',',2014 ')),
+				y: parseFloat(obj.price)
+			};
+		}
+		console.log(data);
+		return data.reverse();
+	}
+	Highcharts.setOptions({global:{useUTC:false}});
+  $('#stock-chart').highcharts({
+    chart:{
+      type:'spline',
+      marginRight:10,
+      animation: Highcharts.svg,
+      backgroundColor:"transparent",
+      borderColor:"#CCC",
+      borderRadius:0,
+      borderWidth:1,
+      showAxes:true,
+      events: { load: function() {
+      	var series = this.series[0];
+      	setTimeout(function() {
+      	 	API.url('stocks').id(window.uid).url('logs').get().ok(function(data){
+      	 		series.setData(process(data.results), true, true);
+      	 	});
+      	 	setTimeout(arguments.callee, 30000);
+      }, 1000); } }
+    },
+    tooltip:{
+      backgroundColor:"#F1C200",
+      borderRadius:0,
+      borderWidth:0,
+      formatter: function(){
+      	console.log(this.x);
+        return Highcharts.dateFormat("%m,%e %H:%M",this.x)+" "+this.y;
+      }
+    },
+    title:{
+      text:"走势",
+      align:"left",
+      style:{
+        "color":"#DDD",
+        "fontSize":"14px",
+      }
+    },
+    credits:{
+      href:"detail/1/",
+      text:"",
+    },
+    xAxis:{
+      type:'datetime',
+      tickInterval : 1000*60*5,
+    },
+    yAxis:{
+      title: {
+        text: '股价'
+      },
+      plotLines:[{
+        value: 0,
+        width: 1,
+        color: '#CCC'
+      }],
+    },
+    legend:{enabled:false},
+    exporting:{enabled:false},
+    series:[{
+      name: '价格'}]
+  })
 	$("#refreshApplications").click(function(){
 		API.url('stocks').id(uid).url('applications').param('limit', 100).get()
 		.ok(function(data){
@@ -173,4 +204,5 @@ $(function(){
 	});
 });
 </script>
+<script src="/static/js/highcharts.js"></script>
 {% endblock %}
