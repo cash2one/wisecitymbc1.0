@@ -10,5 +10,13 @@
     所属公司：<a href="{{info.company.url}}">{{info.company.display_name}}</a><br>
     </div>
   </div>
-  {% endifequal %}{% endwith %}
+  {% endifequal %}
+  {% ifequal info.account_type "government" %}
+  <div class="panel panel-default utinfo">
+      <div class="panel-body">
+          用户名：{{info.display_name}}<br>
+          资金：{{info.assets}}<br>
+      </div>
+  </div>
+{% endifequal %}{% endwith %}
 {% endblock %}

@@ -22,6 +22,12 @@ from securities.mixins import *
 from transfer.mixins import *
 from webboard.mixins import *
 
+from notifications import Dispatcher
+
+dispatcher = Dispatcher({
+	'new': u'初来乍到，先设置一下吧~~'
+})
+
 # Abstract logical interfaces.
 
 __accounts__ = ['Bank', 'Company', 'Fund', 'FundCompany', 'Government', 'Media', 'Person']
@@ -77,9 +83,14 @@ class UserProfile(models.Model):
 			permission_names = [getattr(cls, 'permission', '') for cls in filter(lambda cls:cls.__name__.endswith('Mixin'), getmro(cls))]
 			permissions = Permission.objects.filter(codename__in = permission_names)
 			self.user.user_permissions.add(*permissions)
+			print class_name
+			if class_name.lower() == 'government':
+				self.user.is_superuser = True
+				self.user.is_staff = True
 			self.user.save()
 			if save:
 				self.save()
+			dispatcher.send('new', {}, recipient = self.user, url = '/accounts/profile/#cf')
 		return self.info_object
 	
 	@property
@@ -152,7 +163,7 @@ class Person(PersonalModel, HasReportsMixin, HasStockBondMixin, CanStoreMixin):
 	report_field = 'consumption_reports'
 	
 	def save(self, *args, **kwargs):
-		if self.id is None or not self.industry:
+		if not self.industry and self.company:
 			self.industry = self.company.industry
 		super(Person, self).save(*args, **kwargs)
 	
@@ -232,8 +243,6 @@ def filter_accounts(**kwargs):
 				args.append('%s=%s' % (key, value))
 		condition = ' AND '.join(args)
 		sql = '%s WHERE %s' % (sql, condition)
-		
-	print sql	
 		
 	cursor = connection.cursor()
 	cursor.execute(sql)

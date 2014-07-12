@@ -1,4 +1,4 @@
-<div class="col-md-3 hidden-xs hidden-sm">
+<div class="col-md-3">
 	{% block sidebar %}
 	{% if info.account_type != 'media' %}
 	<li><a href="#as" data-toggle="pill"><i class="fa fa-2x fa-bar-chart-o"></i> 资产分析</a></li>
@@ -17,7 +17,7 @@
 	{% endif %}
 	{% endblock %}
 </div>
-<div class="col-md-9 hidden-xs hidden-sm">
+<div class="col-md-9">
   <div class="tab-content">
 {% block tabs %}
 	{% if is_self %}

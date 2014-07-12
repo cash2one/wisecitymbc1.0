@@ -31,7 +31,8 @@ font-size:16px;}
 .panel-heading {border-bottom:0;}
 .panel-mese2014,
 .panel-mese2014 > .list-group,
-.panel-mese2014 > .list-group > .list-group-item {background-color: transparent;
+.panel-mese2014 > .list-group > .list-group-item,
+.panel-mese2014 > .list-group > .list-group-item > a {background-color: transparent;
 color:#d1a900;}
 .panel-mese2014 > .panel-heading {
 	border-radius:0px;
@@ -133,8 +134,7 @@ padding:6px;}
 .navbar-inner {
   padding-right:0;
   padding-left:0;
-  -webkit-border-radius:0;
-  -moz-border-radius:0;
+  -webkit-border-radius:0;  -moz-border-radius:0;
   border-radius:0;
   background-repeat:repeat-x;
 }
@@ -288,7 +288,7 @@ height:1%;
 z-index-1;
 position:absolute;
 left:auto;
-top:55px;
+top:52px;
 box-shadow:0px 5px 5px rgba(0,0,0,0.4);}
 #feeds-container:before {content:" ";
 width:96.1%;
@@ -297,7 +297,7 @@ height:1%;
 z-index-1;
 position:absolute;
 left:auto;
-top:100px;
+top:97px;
 box-shadow:0px 4px 4px rgba(0,0,0,0.6);}
 .feeds-red {margin-left:2px;font-size:0.85em;color:#FF0022!important;}
 .feeds-details-title {color:#d1a900;margin-top:0px;padding-top:20px;}
@@ -307,6 +307,35 @@ padding-bottom: 10px;
 font-size: 0.87em;
 width:100%;
 border-bottom: 1px dashed #aaa;
+}
+@media (max-width:991px){
+.nav-mese2014:before {content:" ";
+width:96.1%;
+display:block;
+height:1%;
+z-index-1;
+position:absolute;
+left:auto;
+top:34px;
+box-shadow:0px 5px 5px rgba(0,0,0,0.4);}
+#feeds-container:before {content:" ";
+width:96.1%;
+display:block;
+height:1%;
+z-index-1;
+position:absolute;
+left:auto;
+top:77px;
+box-shadow:0px 4px 4px rgba(0,0,0,0.6);}
+.feeds-red {margin-left:2px;font-size:0.85em;color:#FF0022!important;}
+.feeds-details-title {color:#d1a900;margin-top:0px;padding-top:20px;}
+.feeds-details-info {margin-top:15px;
+color:#999;
+padding-bottom: 10px;
+font-size: 0.87em;
+width:100%;
+border-bottom: 1px dashed #aaa;
+}
 }
 div.feeds-details-text {
 padding:10px;
@@ -390,4 +419,12 @@ img.captcha {
 }
 .blank {
 	background-color: red;
+}
+#GOV_container,#MED_container > .list-group-item:first-child > a {color:red}
+
+@media (min-width:768px){
+#nav1{display:none;}
+}
+@media (max-width:767px){
+#nav0{display:none;}
 }

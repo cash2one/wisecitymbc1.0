@@ -5,6 +5,8 @@
 	<ul class="nav nav-pills nav-utinfo" id="mgul">
 		<li><a href="#mgca" data-toggle="pill">创建用户</a></li>
 		<li><a href="#mgcs" data-toggle="pill">创建股票</a></li>
+		<li><a href="#mgtl" data-toggle="pill">系统时间</a></li>
+		<li><a href="/admin/futures/future/">期货管理</a></li>
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane fade in" id="mgcs">
@@ -33,6 +35,10 @@
 				<input type="submit" value="创建用户">
 			</form>
 		</div>
+		<div class="tab-pane fade in" id="mgtl">
+			<p id="timeline"></p>
+			<button class="btn btn-mese2014 btn-mese2014-success" id="incrBtn">系统时间自增</button>
+		</div>
 	</div>
 </div>
 {% endblock %}
@@ -53,6 +59,22 @@
 {{block.super}}
 {% if is_self %}
 <script type="text/javascript">
+$("a[href=#mgtl]").on('show.bs.tab', function(){
+	function update(){
+		API.url('timeline').get()
+		.ok(function(data){
+			$("#timeline").text("现在是：{year}年 第{quarter}季度".render(data));
+		});
+	}
+	update();
+	$("#incrBtn").click(function(){
+		API.url('timeline').post()
+		.paramError(function(){
+			toastr.warning("禁止修改：还未满4小时！","",{timeOut:3000});
+		})
+		.ok(update);
+	});
+});
 $("a[href=#mg]").one('show.bs.tab', function(){
 	$('#mgul> li > a:first').tab('show');
 });

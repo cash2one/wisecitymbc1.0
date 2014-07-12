@@ -10,6 +10,53 @@ from django.http import Http404
 
 from common.serializers import FileField 
 
+class AccountField(serializers.WritableField):
+	
+	def __init__(self, *args, **kwargs):
+		self.exclude = kwargs.pop('exclude',[])
+		self.fields = kwargs.pop('fields', [])
+		return super(AccountField, self).__init__(*args, **kwargs)
+	
+	def field_to_native(self, obj, field_name):
+		enterprise = getattr(obj, field_name)
+		if enterprise:
+			return get_serializer_by_object(enterprise)(
+				enterprise, 
+				safe_fields = True, 
+				exclude = self.exclude,
+				fields = self.fields
+		).data
+		
+	def field_from_native(self, data, files, field_name, into):
+		print self.partial, data.get('field_name')        
+		if self.partial and not data.get(field_name, None):
+			return
+		enter_data = data[field_name]
+		if isinstance(enter_data, models.Account):
+			cls = ContentType.objects.get(app_label = 'accounts', model = enter_data.__class__.__name__)
+			into[field_name] = enter_data
+			into['%s_type' % field_name] = cls
+			into['%s_object_id' % field_name] = enter_data.id
+			return enter_data
+			
+		if isinstance(enter_data, (str, unicode)):
+			data = models.filter_accounts(display_name = enter_data)
+			if not data:
+				raise serializers.ValidationError(u"用户%s不存在。" % enter_data)
+			else:
+				data = data[0]
+				enter_data = {'type': data['account_type'], 'id': data['id']}
+
+		cls = ContentType.objects.get(app_label = 'accounts', model = enter_data['type'])
+
+		try:
+			obj = cls.model_class().objects.get(pk = enter_data['id'])
+		except cls.model_class().DoesNotExist:
+			raise serializers.ValidationError(u"用户%s不存在。" % enter_data['display_name'])
+		into[field_name] = obj
+		
+		return obj
+
 class AccountSerializer(serializers.HyperlinkedModelSerializer):
 
 	account_type = serializers.CharField(read_only = True)
@@ -48,7 +95,7 @@ class HyperlinkedCompanySerializer(serializers.HyperlinkedModelSerializer):
 	
 class PersonSerializer(PersonalSerializer):
 	
-	company = serializers.SerializerMethodField('get_company')
+	company = AccountField(exclude = ['members'])
 	debt_files = FileField(many = True, required = False)
 	consumption_reports = FileField(required = False, many = True)
 	safe_exclude = ['assets', 'debt_files', 'consumption_reports', 'company']
@@ -136,52 +183,6 @@ def get_enterprises():
 		res.extend(serializer(cls.objects.all(), many = True).data)
 		
 	return res
-	
-class AccountField(serializers.WritableField):
-	
-	def __init__(self, *args, **kwargs):
-		self.exclude = kwargs.pop('exclude',[])
-		self.fields = kwargs.pop('fields', [])
-		return super(AccountField, self).__init__(*args, **kwargs)
-	
-	def field_to_native(self, obj, field_name):
-		enterprise = getattr(obj, field_name)
-		if enterprise:
-			return get_serializer_by_object(enterprise)(
-				enterprise, 
-				safe_fields = True, 
-				exclude = self.exclude,
-				fields = self.fields
-		).data
-		
-	def field_from_native(self, data, files, field_name, into):
-		if self.partial and not data.get(field_name, None):
-			return
-		enter_data = data[field_name]
-		if isinstance(enter_data, models.Account):
-			cls = ContentType.objects.get(app_label = 'accounts', model = enter_data.__class__.__name__)
-			into[field_name] = enter_data
-			into['%s_type' % field_name] = cls
-			into['%s_object_id' % field_name] = enter_data.id
-			return enter_data
-			
-		if isinstance(enter_data, (str, unicode)):
-			data = models.filter_accounts(display_name = enter_data)
-			if not data:
-				raise serializers.ValidationError(u"用户%s不存在。" % enter_data)
-			else:
-				data = data[0]
-				enter_data = {'type': data['account_type'], 'id': data['id']}
-
-		cls = ContentType.objects.get(app_label = 'accounts', model = enter_data['type'])
-
-		try:
-			obj = cls.model_class().objects.get(pk = enter_data['id'])
-		except cls.model_class().DoesNotExist:
-			raise serializers.ValidationError(u"用户%s不存在。" % enter_data['display_name'])
-		into[field_name] = obj
-		
-		return obj
 		
 class CreateUserSerializer(serializers.Serializer):
 	

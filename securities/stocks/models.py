@@ -80,7 +80,8 @@ class Log(models.Model):
 class ApplicationManager(models.Manager):
 
 	def fetch_suitable_applications(self, application):
-		return self.filter(stock = application.stock, price = application.price, shares__gt = Decimal(0)).exclude(command = application.command).exclude(applicant_type = application.applicant_type, applicant_object_id = application.applicant_object_id)
+		s = self.filter(stock = application.stock, price = application.price, shares__gt = Decimal(0)).exclude(command = application.command).exclude(applicant_type = application.applicant_type, applicant_object_id = application.applicant_object_id)      
+		return s
 		
 class Application(get_inc_dec_mixin(['shares', 'price'])):
 

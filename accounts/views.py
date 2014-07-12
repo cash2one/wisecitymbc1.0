@@ -1,3 +1,4 @@
+#encoding=utf-8
 from django.contrib import auth
 from django.shortcuts import render_to_response, get_object_or_404
 from annoying.decorators import ajax_by_method
@@ -24,6 +25,16 @@ def set_password(request):
 def company_index(request):
 	res = serializers.get_enterprises()
 	return Response({'companies':res}, template_name = 'accounts/companies.html')
+	
+@api_view(['GET'])
+@renderer_classes([renderers.JSONRenderer])
+def companies(request):
+	data = models.filter_accounts(account_type=['company', 'fundcompany', 'bank'])
+	_ = []
+	for i in data:
+		i.pop('class')
+		_.append(i)
+	return Response(_)
 	
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -114,13 +125,9 @@ def login(request):
 		request.session['referer'] = http_referer
 		return render_to_response('accounts/login.html')
 	#POST
-	
-	print request.POST
 	username = request.POST.get('username', '')
 	password = request.POST.get('password', '')
-	print username,password
 	user = auth.authenticate(username = username, password = password)
-	print request.session['referer']
 	if user is None:
 		return HttpResponse('',status=status.HTTP_400_BAD_REQUEST)
 	else:

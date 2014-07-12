@@ -32,7 +32,7 @@
 					<tr>
 						<th>{{app.price}}</th>
 						<th>{{app.shares}}</th>
-						<th>{%if app.type == 'SELL'%}卖出{%else%}买入{%endif%}</th>
+						<th>{%if app.command == 'sell'%}卖出{%else%}买入{%endif%}</th>
 						<th>{{app.created_time}}</th>
 					</tr>
 				{% endfor %}
@@ -56,7 +56,7 @@
 					<tr>
 						<th>{{app.price}}</th>
 						<th>{{app.shares}}</th>
-						<th>{%if app.type == 'SELL'%}卖出{%else%}买入{%endif%}</th>
+						<th>{%if app.command == 'sell'%}卖出{%else%}买入{%endif%}</th>
 						<th>{{app.created_time}}</th>
 						<th>
 							<a class="delApp" data-id="{{app.id}}" href="javascript:void(0);">删除</a>&nbsp;

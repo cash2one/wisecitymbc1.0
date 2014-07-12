@@ -18,8 +18,13 @@
 <select name="gender" data-label="性别">
 	<option value="M">男</option>
 	<option value="F">女</option>
-/select>
+</select>
 <input type="text" data-label="职位" name="position" validator="maxlength:20">
+{% if not info.company %}
+<select name="company" data-label="公司" id="selCpy">
+
+</select>
+{% endif %}
 {% endblock %}
 
 {% block tabs %}
@@ -28,4 +33,18 @@
 	
 {% block extra_script %}
 {{block.super}}
+<script type="text/javascript">
+$(function(){
+	if (window.data.profile.company === null) {
+		API.url('companies').get()
+		.ok(function(data){
+			var s = [];
+			$(data).each(function(){
+				s.push("<option value='{display_name}'>{display_name}</option>".render(this));
+			});
+			$(s).appendTo($("#selCpy"));
+		});
+	}
+});
+</script>
 {% endblock %}

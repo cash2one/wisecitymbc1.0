@@ -28,7 +28,7 @@
 		      <li><a href="/">首页</a></li>
 		      <li><a href="/securities/">交易大厅</a></li>
 					<li><a href="/accounts/companies/">企业信息</a></li>
-		      <li><a href="/webboard/passages/?type=all">新闻中心</a></li>
+		      <li><a href="/webboard/passages/?type=">新闻中心</a></li>
 		      {% if user.is_authenticated %}
 		      <li><a href="/accounts/profile/">{{user.profile.info.display_name}}</a>
 		      <li><a href="/accounts/logout/">退出登录</a></li>		      
@@ -49,39 +49,33 @@
       <div class="row" id="mGOV">
         <div class="panel panel-default panel-mese2014">
           <div class="panel-heading"><a href="/webboard/passages/?type=GOV">政府信息</a></div>
-            <ul class="list-group">
-    			  <li class="list-group-item">Cras justo odio</li>
-    			  <li class="list-group-item">Dapibus ac facilisis in</li>
-    			  <li class="list-group-item">Morbi leo risus</li>
-    			  <li class="list-group-item">Porta ac consectetur ac</li>
-    			  <li class="list-group-item">Vestibulum at eros</li>
-              <li class="list-group-item">Cras justo odio</li>
-    			  <li class="list-group-item">Dapibus ac facilisis in</li>
-    			  <li class="list-group-item">Morbi leo risus</li>
-    			  <li class="list-group-item">Porta ac consectetur ac</li>
-    			  <li class="list-group-item">Vestibulum at eros</li>
+            <ul class="list-group" id="GOV_container">
+    			  <script>
+                      API.list({
+                          apiUrl: API.url("passages").param("type","GOV"),
+                          container: "GOV_container",
+                          template: "<li class='list-group-item'><a href='{url}'>{title}</a><span class='pull-right'>{created_time}</span></li>"
+                      })
+                </script>
   			  </ul>
         </div>
       </div>
       <div class="row" id="mMED">
           <div class="panel panel-default panel-mese2014">
             <div class="panel-heading"><a href="/webboard/passages/?type=MED">新闻媒体</a></div>
-              <ul class="list-group">
-    			    <li class="list-group-item">Cras justo odio</li>
-    			    <li class="list-group-item">Dapibus ac facilisis in</li>
-    			    <li class="list-group-item">Morbi leo risus</li>
-    			    <li class="list-group-item">Porta ac consectetur ac</li>
-    			    <li class="list-group-item">Vestibulum at eros</li>
-                <li class="list-group-item">Cras justo odio</li>
-    			    <li class="list-group-item">Dapibus ac facilisis in</li>
-    			    <li class="list-group-item">Morbi leo risus</li>
-    			    <li class="list-group-item">Porta ac consectetur ac</li>
-    			    <li class="list-group-item">Vestibulum at eros</li>
+              <ul class="list-group" id="MED_container">
+                  <script>
+                      API.list({
+                          apiUrl: API.url("passages").param("type","MED"),
+                          container: "MED_container",
+                          template: "<li class='list-group-item'><a href='{url}'>{title}</a><span class='pull-right'>{created_time}</span></li>"
+                      })
+                </script>
   			     </ul>
           </div>
      </div>
    </div>
-        <div class="col-sm-8">
+      <div class="col-sm-8">
         <div class="row" id="mSTO">
           <div class="panel panel-default panel-mese2014" style="border-bottom:0px;">
             <div class="panel-heading"><a href="/securities/">
@@ -92,20 +86,42 @@
             <thead>
               <th>名称</th>
               <th>价格</th>
-              <th></th>
             </thead>
-            <tbody>
-              <th>ID1</th>
-              <th><i class="fa fa-cny"> l2</i></th>
-              <th><i class="fa fa-caret-down fa-lg"></i></th>
+            <tbody id="FUR_container">
+              <script>
+                  API.list({
+                      apiUrl:API.url("futures"),
+                      container:"FUR_container",
+                      template:"<tr><th>{display_name}</th><th>{current_price}</th></tr>"
+                  })
+              </script>
             </tbody>
           </table>
         </div>
+        <div class="row" id="mSTO">
+          <div class="panel panel-default panel-mese2014" style="border-bottom:0px;">
+            <div class="panel-heading"><a href="/securities/">
+              股票板块</a>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <th>名称</th>
+              <th>价格</th>
+              <th></th>
+            </thead>
+              <tbody id="STO_container">
+                  
+              <script>
+                  API.list({
+                      apiUrl:API.url("stocks"),
+                      container:"STO_container",
+                      template:"<tr><th>{display_name}</th><th>{current_price}</th><th><a href='{url}'>详情</a></th></tr>"
+                  })
+              </script>
+              </tbody>
+          </table>
         </div>
-        <div class="row" id="mFUR">
-          
-        </div>
-      </div>
       </div>
     </main>
     <script>

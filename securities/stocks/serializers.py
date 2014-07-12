@@ -5,6 +5,7 @@ from .models import Stock, Share, Application, Log
 from rest_framework.serializers import ValidationError
 from accounts.serializers import AccountField
 import mixins
+from django.db.models import Sum
 
 class CreateStockSerializer(serializers.Serializer):
 
@@ -93,7 +94,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
 			return attrs
 		try:
 			share = self.__actor.stock_shares.get(stock = self.__stock)
-			if share.shares < attrs['shares']:
+			count = self.__actor.stock_applications.filter(command = Application.SELL).aggregate(count = Sum('shares'))['count']
+			print 'cccc',count            
+			if (share.shares - count)< attrs['shares']:
 				raise_error()
 		except Share.DoesNotExist:
 			raise_error()
@@ -102,7 +105,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 	
 	class Meta:
 		model = Application
-		exclude = ('applicant_type', 'applicant_object_id', 'applicant', 'command',)
+		exclude = ('applicant_type', 'applicant_object_id', 'applicant',)
 
 class ApplySerializer(serializers.Serializer):
 	
@@ -134,7 +137,8 @@ class ApplySerializer(serializers.Serializer):
 			return attrs
 		try:
 			share = self.__actor.stock_shares.get(stock = self.__stock)
-			if share.shares < attrs['shares']:
+			count = self.__actor.stock_applications.filter(command = Application.SELL).aggregate(count = Sum('shares'))['count'] or 0          
+			if (share.shares - count)< attrs['shares']:
 				raise_error()
 		except Share.DoesNotExist:
 			raise_error()
