@@ -133,7 +133,7 @@
 		<script>
 			$(function(){
 				var logined;
-				{% if user %} logined = true; {% endif %}
+				{% if user.is_authenticated %} logined = true; {% endif %}
 				$("form").submit(function(e){
 					e.preventDefault();
 					return false;
@@ -145,8 +145,8 @@
 						$(data.results).each(function(){	
 							var $msg = [this.message];
 							if (this.url)
-							$msg.push("&nbsp;<a href='{url}' target=_blank>详情</a>".render(this));
-							$msg.push("&nbsp;<a href='javascript:void(0);' id='{id}'class='confirm'>确认</a>".render(this))
+							$msg.push("<br><a url='{url}' href='javascript:void(0);' class='detail'>详情</a>".render(this));
+							$msg.push("&nbsp;<a href='javascript:void(0);' id='{id}' class='confirm'>确认</a>".render(this))
 							console.log($msg);
 							toastr.info($msg.join(""), "系统消息")
 							.click(function(){
@@ -155,6 +155,12 @@
 							.find('a.confirm').click(function(){
 								API.url("notifications").id($(this).attr("id")).url("confirm").get(function(){
 									$(this).parent().parent().hide();
+								});
+							})
+							.parent().find('a.detail').click(function(){
+								var that = $(this);
+								API.url("notifications").id(that.attr("id")).url("confirm").get(function(){
+									window.loction.href = that.attr('url');
 								});
 							});
 						});

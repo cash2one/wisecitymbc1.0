@@ -5,3 +5,8 @@ class FutureSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = models.Future
+		
+class GoodsSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = models.Goods

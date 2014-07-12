@@ -94,5 +94,3 @@ class Notification(models.Model):
 		self.save()
 		if self.action == self.DELETE and self.target_object is not None:
 			self.target_object.delete()
-		
-print Notification.objects

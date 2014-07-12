@@ -21,12 +21,27 @@ def IsSubClass(cls_name, safe_methods = False):
 	
 	class P(BasePermission):
 		
+		safe_methods = False
+		
+		def __init__(self, *args, **kwargs):
+			self.safe_methods = self.safe_methods or kwargs.pop('safe_methods', False)
+			return super(P, self).__init__(*args, **kwargs)
+			
+		@classmethod
+		def new(cls, safe_methods = False, *args, **kwargs):
+			cls.safe_methods = safe_methods
+			return cls
+		
 		def has_permission(self, request, view):
+			if self.safe_methods and (request.method in SAFE_METHODS):
+				return True
+			if not request.user.is_authenticated():
+				return False
 			if isinstance(cls_name, type):
 				condition = isinstance(request.user.profile.info, cls_name)
 			else:
 				condition = check_base_class_by_name(request.user.profile.info, cls_name)
-			return safe_methods and (request.method in SAFE_METHODS) or request.user and request.user.profile and condition
+			return request.user.profile and condition
 			
 	return P
 

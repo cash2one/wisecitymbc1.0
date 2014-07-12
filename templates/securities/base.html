@@ -2,7 +2,7 @@
 {% block main_content %}
 <div class="container">
     <div class="col-md-4">
-	{% block sidebar %}{%endblock%}
+	{% block sidebar %}{% include "side_nav.html" %}{%endblock%}
 	</div>
 	<div class="col-md-8">
 	{% block main %}{% endblock %}

@@ -67,6 +67,7 @@
 {% endblock %}
 {% endblock %}
 {% block sidebar %}
+{{block.super}}
 <ul class="nav nav-pills nav-stacked nav-utinfo">
 {% if object.published and object.fund_type == "open" or not object.published and user.profile.info.account_type != "media" %}
 	<li><a href="#buy" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请购买</a></li>

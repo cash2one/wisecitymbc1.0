@@ -45,7 +45,6 @@ def profile(request):
 			self.__permissions = user.user_permissions.values_list('codename')
 			
 		def __getattr__(self, name):
-			print name
 			return (name,) in self.__permissions
 
 	uid = request.REQUEST.get('uid', None)
@@ -116,12 +115,8 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 	
 @csrf_exempt
 def login(request):
-	if request.user.is_authenticated():
-		return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-	
 	if request.method == 'GET':
 		http_referer = request.META.get('HTTP_REFERER', '/')
-		print http_referer
 		request.session['referer'] = http_referer
 		return render_to_response('accounts/login.html')
 	#POST

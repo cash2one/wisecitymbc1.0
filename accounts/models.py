@@ -83,7 +83,6 @@ class UserProfile(models.Model):
 			permission_names = [getattr(cls, 'permission', '') for cls in filter(lambda cls:cls.__name__.endswith('Mixin'), getmro(cls))]
 			permissions = Permission.objects.filter(codename__in = permission_names)
 			self.user.user_permissions.add(*permissions)
-			print class_name
 			if class_name.lower() == 'government':
 				self.user.is_superuser = True
 				self.user.is_staff = True
@@ -200,11 +199,17 @@ class Company(Enterprise,CanStoreMixin):
 	
 class FundCompany(Enterprise, OwnFundMixin):
 
-	pass
+	@property
+	def industry(self):
+		return u'基金公司'
 	
 class Bank(Enterprise, OwnFundMixin):
 	
 	rate = DecimalField()
+	
+	@property
+	def industry(self):
+		return u'银行'
 	
 	def share_profits(self):
 		rate = self.rate /100

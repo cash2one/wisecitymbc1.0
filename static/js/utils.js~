@@ -23,7 +23,7 @@ function JsonToStr(o) {
 	return o.toString().replace(/\"\:/g, '":""');
 }
 window.encodeJSON = JSON.stringify||JsonToStr;
-window.decodeJSON = JSON.parse||function(d){return Function('return '+d)();};
+window.decodeJSON = JSON.parse||function(d){eval('('+d+')')};
 
 Object.clone = function(sObj){ 
 	if(typeof sObj !== "object"){   
@@ -50,14 +50,14 @@ Object.extend = function(tObj,sObj){
 				Object.extend(tObj[i],sObj[i]);   
 			}   
 		}   
-}
+}  
 
 String.prototype.render = function(context) {
 	return this.replace(/{([^{}]+)}/g, function (word) {
 		var words=word.slice(1,-1).split('.'),obj=context;
 		for (var i=0,l=words.length;i<l;i++){
 			obj=obj[words[i]];
-			if (obj===undefined||obj===null) return '';
+			if (obj===undefined) return '';
 		}
 		return obj
 	});
@@ -104,23 +104,7 @@ $.fn.clearForm = function() {
 	 .val('')  
 	 .removeAttr('checked')  
 	 .removeAttr('selected')
-	 .removeClass('blank')
-	 .find('div.alert-login').hide();
-};
-
-$.fn.placeError = function(msg){
-	if (!this.is('form')) return this;
-	this.find('div.alert-login').addClass('visible').html(msg.html&&msg.html()||msg);
-	return this;
-};
-
-$.fn.errors = function(data) {
-	if (!this.is('form')) return this;
-	for (var name in data) {
-		$("input[name='"+name+"']").error();
-		this.placeError(data[name]);
-	}
-	return this;
+	 .removeClass('blank');
 };
 
 (function(){
@@ -242,6 +226,21 @@ $.fn.errors = function(data) {
 	};
 })();
 
+$.fn.placeError = function(msg){
+	if (!this.is('form')) return this;
+	this.find('div.alert-login').addClass('visible').html(msg.html&&msg.html()||msg);
+	return this;
+};
+
+$.fn.errors = function(data) {
+	if (!this.is('form')) return this;
+	for (var name in data) {
+		$("input[name='"+name+"']").error();
+		this.placeError(data[name]);
+	}
+	return this;
+}
+
 $.validator.setDefaults({
 	debug: true,
 	onfocusout: false,
@@ -278,6 +277,7 @@ $(function(){
 	$("form.mese").each(function(){
 		function getColClassName(n) {return 'col-sm-'+n;}
 		var $form = $(this).addClass('form-horizontal'), isCaptcha = $form.attr("captcha")!==undefined, 
+			method = $form.attr('method')||'post', action = $form.attr('action'),
 			$inputWidth = parseInt($form.attr("input-width"))||9,
 			$inputCol = getColClassName($inputWidth), $labelCol = getColClassName(12-$inputWidth),
 			$inputs = $form.find("input, select, textarea").not(":submit"),
@@ -334,7 +334,7 @@ $(function(){
 				$form.validate();
 				if (!$form.valid()) return false;
 				var func = $form.data('processData')||emptyFunc, data = $form.serializeObject(), 
-					callback = $form.data('callback')||emptyFunc, method = $form.attr('method')||'post', action = $form.attr('action');
+					callback = $form.data('callback')||emptyFunc;
 				func(data);
 				API.raw(action)[method](data)
 				.ok(function(data){
@@ -350,7 +350,7 @@ $(function(){
 			});
 		} else {
 			$submits.click(function(){
-				var $this = $(this), action = $this.attr('action'), method = $form.attr('method')||'post';
+				var $this = $(this), action = $this.attr('action');
 				$form.validate();
 				if (!$form.valid()) return false;
 				var func = $form.data('processData')||emptyFunc, data = $form.serializeObject(), 

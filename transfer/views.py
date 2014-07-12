@@ -68,7 +68,7 @@ class DepositAPIViewSet(ReadOnlyModelViewSet):
 		return cls
 	
 	def get_queryset(self):
-		qs = self.request.user.profile.info.deposits.all()
+		qs = self.request.user.profile.info.deposits.filter(money__gt = 0)
 		pk = self.kwargs.get('bank_pk', None)
 		if pk is not None:
 			qs = qs.filter(bank_id = pk)

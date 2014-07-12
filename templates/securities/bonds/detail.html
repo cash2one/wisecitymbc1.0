@@ -60,6 +60,7 @@
 未购买该债券
 {% endif %}
 </div>
+{{block.super}}
 <ul class="nav nav-pills nav-stacked nav-utinfo">
 {% if not object.published and not is_self and perms.bonds.has_bond %}
 	<li><a href="#buy" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请购买</a></li>

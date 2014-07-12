@@ -27,8 +27,7 @@ class AccountField(serializers.WritableField):
 				fields = self.fields
 		).data
 		
-	def field_from_native(self, data, files, field_name, into):
-		print self.partial, data.get('field_name')        
+	def field_from_native(self, data, files, field_name, into):   
 		if self.partial and not data.get(field_name, None):
 			return
 		enter_data = data[field_name]
@@ -54,6 +53,8 @@ class AccountField(serializers.WritableField):
 		except cls.model_class().DoesNotExist:
 			raise serializers.ValidationError(u"用户%s不存在。" % enter_data['display_name'])
 		into[field_name] = obj
+		into['%s_type' % field_name] = cls
+		into['%s_object_id' % field_name] = obj.id
 		
 		return obj
 

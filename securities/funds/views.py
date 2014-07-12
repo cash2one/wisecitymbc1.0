@@ -1,6 +1,6 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.decorators import action, api_view, renderer_classes
+from rest_framework.decorators import action, api_view, renderer_classes, permission_classes
 from rest_framework import status, renderers
 from rest_framework.response import Response
 from django.contrib import auth
@@ -13,6 +13,7 @@ from captcha.decorators import check_captcha
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
+@permission_classes([HasFund, OwnFund])
 def detail(request):
 	fund_id = request.REQUEST.get('uid', 0)
 	fund = get_object_or_404(models.Fund, pk = fund_id)
@@ -27,6 +28,7 @@ def funds_list(request):
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
+@permission_classes([HasFund])
 def setps(request):
 	fund_id = request.REQUEST.get('uid', 0)
 	fund = get_object_or_404(models.Fund, pk = fund_id)
@@ -36,7 +38,7 @@ class ShareAPIViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
 	
 	model = models.Share
 	serializer_class = serializers.ShareSerializer
-	permission_classes = [HasFund]
+	permission_classes = [HasFund.new(True)]
 	
 	def get_queryset(self):
 		fund_pk = self.kwargs.get('fund_pk', None)

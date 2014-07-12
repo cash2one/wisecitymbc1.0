@@ -38,7 +38,7 @@ class StoreSerializer(serializers.Serializer):
 		if self.command == 'remove':
 			try:
 				deposit = self.actor.deposits.get(bank = self.bank)
-				if deposit.money <= money:
+				if deposit.money < money:
 					raise serializers.ValidationError(u"银行账户余额不足。")
 			except Deposit.DoesNotExist:
 				raise serializers.ValidationError(u"银行账户余额不足。")

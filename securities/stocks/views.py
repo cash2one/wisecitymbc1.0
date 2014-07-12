@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import mixins, renderers, status
-from rest_framework.decorators import action, api_view, renderer_classes
+from rest_framework.decorators import action, api_view, renderer_classes, permission_classes
 import models, serializers
 from accounts.models import filter_accounts, account_classes_map
 from .exceptions import ParamError
@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .permissions import HasStock
 from captcha.decorators import check_captcha
+from django.http import Http404
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -17,6 +18,7 @@ def stocks_list(request):
 	
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
+@permission_classes([HasStock])
 def change_application(request):
 	application_id = request.REQUEST.get('uid', '0')
 	application_object = get_object_or_404(models.Application, pk = application_id)
@@ -29,6 +31,7 @@ def change_application(request):
 	
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
+@permission_classes([HasStock])
 def detail(request):
 	stock_id = request.REQUEST.get('uid', '0')
 	stock_object = get_object_or_404(models.Stock, pk = stock_id)
@@ -73,11 +76,10 @@ class ApplicationAPIViewSet(ModelViewSet):
 	
 	model = models.Application
 	serializer_class = serializers.ApplicationSerializer
-	permission_classes = [HasStock]
 	
 	def get_queryset(self):
 		stock_pk = self.kwargs.get('stock_pk', None)
-		qs = self.request.user.profile.info.stock_applications.all()
+		qs = models.Application.objects.all()
 		if stock_pk is not None:
 			qs = qs.filter(stock_id = stock_pk)
 			

@@ -7,3 +7,8 @@ class FutureAPIViewSet(ModelViewSet):
 	
 	model = models.Future
 	serializer_class = serializers.FutureSerializer
+	
+class GoodsAPIViewSet(ModelViewSet):
+
+	model = models.Goods
+	serializer_class = serializers.GoodsSerializer
