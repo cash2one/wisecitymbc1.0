@@ -5,22 +5,23 @@
 	<ul class="nav nav-pills nav-utinfo" id="mgul">
 		<li><a href="#mgca" data-toggle="pill">创建用户</a></li>
 		<li><a href="#mgcs" data-toggle="pill">创建股票</a></li>
-		<li><a href="#mgtl" data-toggle="pill">系统时间</a></li>
 		<li><a href="/admin/futures/future/">期货管理</a></li>
+		<li><a href="#mgtl" data-toggle="pill">其他管理</a></li>
 	</ul>
 	<div class="tab-content">
 		<div class="tab-pane fade in" id="mgcs">
 			<form class="col-sm-offset-3 col-sm-6 mese" id="csForm" action="/api/stocks/">
-						<input type="text" name="owner" data-label="发布者" validator="required maxlength:20">
-						<input type="text" name="display_name" data-label="股票名" validator="required maxlength:20">
-						<input type="text" name="current_price" data-label="初始价格" validator="required number gt:0">
-						<input type="text" name="total_shares" data-label="股份数" validator="required number digits gt:0">
-						<input type="text" data-label="代销商" name="proxy" validator="required maxlength:20">
-						<input type="submit" value="创建股票">
+				<input type="text" name="owner" data-label="发布者" validator="required maxlength:20">
+				<input type="text" name="display_name" data-label="股票名" validator="required maxlength:20">
+				<input type="text" name="current_price" data-label="初始价格" validator="required number gt:0">
+				<input type="text" name="total_shares" data-label="股份数" validator="required number digits gt:0">
+				<input type="text" data-label="代销商" name="proxy" validator="required maxlength:20">
+				<input type="submit" value="创建股票">
 			</form>
 		</div>
 		<div class="tab-pane fade in" id="mgca">
 			<form class="col-sm-offset-3 col-sm-6 mese" action="/api/users/" id="caForm">
+				<p>初始密码：12345</p>
 				<input type="text" name="username" data-label="登录名" validator="required maxlength:20">
 				<input type="text" data-label="用户名" name="display_name" validator="required maxlength:20">
 				<select name="account_type" data-label="类型">
@@ -36,8 +37,33 @@
 			</form>
 		</div>
 		<div class="tab-pane fade in" id="mgtl">
-			<p id="timeline"></p>
-			<button class="btn btn-mese2014 btn-mese2014-success" id="incrBtn">系统时间自增</button>
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">
+					<h4>系统时间</h4>
+				</div>
+			<div class="panel-body">
+				<span id="timeline"></span>&nbsp;
+				<button class="btn btn-mese2014-success btn-xs btn-mese2014" id="incrBtn">系统时间自增</button>
+			</div>
+			</div>
+			<br>
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-body">
+					<a href="/admin/futures/goods/" class="btn btn-xs btn-mese2014 btn-mese2014-success">现货管理</a>
+				</div>
+			</div>
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">
+					其他数据
+				</div>
+				<div class="panel-body">
+					<form class="mese col-md-offset-2 col-md-8" id="infoForm" action="/api/info/" method="patch">
+						<input type="text" name="profit_rate" data-label="银行基准利率" validator="gt:0 lt:100">
+						<input type="text" name="inflation_rate" data-label="通货膨胀率" validation="gt:0 lt:100">
+						<input type="submit" value="提交">
+					</form>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -73,6 +99,18 @@ $("a[href=#mgtl]").on('show.bs.tab', function(){
 			toastr.warning("禁止修改：还未满4小时！","",{timeOut:3000});
 		})
 		.ok(update);
+	});
+	var $infoForm = $("#infoForm");
+	API.url('info').get()
+	.ok(function(data){
+		for (var key in data) {
+			$infoForm.find('[name='+key+']').val(data[key]);
+		}
+	});
+	$infoForm.initForm({
+		callback: function(){
+			tips("信息设置成功！");
+		}
 	});
 });
 $("a[href=#mg]").one('show.bs.tab', function(){

@@ -116,7 +116,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 		'common.middlewares.SQLMiddleware',
-		'common.middlewares.ForbiddenMiddleware',
 )
 
 ROOT_URLCONF = 'mese2014.urls'
@@ -151,6 +150,7 @@ INSTALLED_APPS = (
 		'notifications',
 		'transfer',
 		'cron',
+		'info',
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
@@ -223,4 +223,5 @@ REST_FRAMEWORK = {
 	),
 	'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
 	'DATETIME_FORMAT': '%m-%d %H:%M:%S',
+	'EXCEPTION_HANDLER': 'common.exceptions.handle_403_exception'
 }

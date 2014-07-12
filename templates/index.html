@@ -78,8 +78,8 @@
       <div class="col-sm-8">
         <div class="row" id="mSTO">
           <div class="panel panel-default panel-mese2014" style="border-bottom:0px;">
-            <div class="panel-heading"><a href="/securities/">
-              期货板块</a>
+            <div class="panel-heading">
+              期货板块
             </div>
           </div>
           <table class="table">
@@ -92,6 +92,28 @@
                   API.list({
                       apiUrl:API.url("futures"),
                       container:"FUR_container",
+                      template:"<tr><th>{display_name}</th><th>{current_price}</th></tr>"
+                  })
+              </script>
+            </tbody>
+          </table>
+        </div>
+        <div class="row" id="mSTO">
+          <div class="panel panel-default panel-mese2014" style="border-bottom:0px;">
+            <div class="panel-heading"><a href="/securities/">
+              现货板块</a>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <th>名称</th>
+              <th>价格</th>
+            </thead>
+            <tbody id="GOD_container">
+              <script>
+                  API.list({
+                      apiUrl:API.url("goods"),
+                      container:"GOD_container",
                       template:"<tr><th>{display_name}</th><th>{current_price}</th></tr>"
                   })
               </script>
