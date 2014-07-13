@@ -184,7 +184,7 @@ def get_enterprises():
 		res['enterprises'].extend(serializer(cls.objects.all(), many = True).data)
 	
 	serializer = get_serializer_by_class(models.Bank)
-	res['banks'].extend(serializer(cls.objects.all(), many = True).data)	
+	res['banks'].extend(serializer(models.Bank.objects.all(), many = True).data)	
 	return res
 		
 class CreateUserSerializer(serializers.Serializer):
