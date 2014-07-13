@@ -1,6 +1,12 @@
 {% extends "accounts/profile/base-profile.html" %}
 {% block tabs %}
 {{block.super}}
+{% if is_self %}
+<div class="tab-pane fade in" id="pb">
+{% include "upload_cdn.html" %}
+{% include "write.html" %}
+</div>
+{% endif %}
 <div class="tab-pane fade in" id="mg">
 	<ul class="nav nav-pills nav-utinfo" id="mgul">
 		<li><a href="#mgca" data-toggle="pill">创建用户</a></li>
@@ -79,6 +85,9 @@
   {% if is_self %}
   <li><a href="#mg" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>管理</a></li>
   {% endif %}
+  {% if is_self %}
+  <li><a href="#pb" data-toggle="pill"><i class="fa fa-2x fa-pencil"></i>&nbsp;&nbsp;发布新闻</a></li>
+	{% endif %}
 </ul>
 {% endblock %}
 {% block extra_script %}

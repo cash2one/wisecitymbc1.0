@@ -8,7 +8,21 @@
 					公司
 				</div>
 				<ul class="list-group">
-				{% for company in companies %}
+				{% for company in companies.enterprises %}
+					<li class="list-group-item">
+						<a href="{{company.url}}">{{company.display_name}}</a>&nbsp;{{company.industry}}
+					</li>
+				{% endfor %}
+				</ul>
+			</div>
+		</div>
+		<div class="row">
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">
+					银行
+				</div>
+				<ul class="list-group">
+				{% for company in companies.banks %}
 					<li class="list-group-item">
 						<a href="{{company.url}}">{{company.display_name}}</a>&nbsp;{{company.industry}}
 					</li>

@@ -3,7 +3,7 @@
 {% block main %}
 <div class="container">
 	<div class="col-md-4">
-		<h3><a href="#main" data-toggle="pill">{{object.display_name}}</a></h3>
+		<h4>{{object.display_name}}{% if object.published %}&nbsp;<small>已发布</small>{% endif %}</h4>
 	</div>
 	<div class="col-md-4">
 		<h4>基本利率：{{object.profit_rate}}%</h4>

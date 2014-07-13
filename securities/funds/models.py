@@ -74,7 +74,7 @@ class Fund(models.Model):
 			share.save()
 		else:
 			share.inc_money(money)
-		if self.published:
+		if self.published and self.account is not None:
 			self.account.inc_assets(money)
 		
 	def share_profits(self, commit = True):
@@ -111,17 +111,17 @@ class Fund(models.Model):
 	def get_absolute_url(self):
 		return '/funds/detail/?uid=%d' % self.id 
 	
-	def publish(self, delete_on_failed = True):
-		print self.total_money
-		if self.total_money >= self.initial_money:
+	def publish(self, delete_on_failed = True):   
+		if not self.total_money >= self.initial_money:
 			if delete_on_failed:
 				self._send_notification('delete', action = 'delete')
 				self._end()
 				return
 			else:
 				raise ValidationError("")
-				
 		self._send_notification('create', important = True, url = '/funds/setps/?uid=%d' % self.id)
+		self.published = True
+		self.save()        
 		
 	def create_user(self, username, password):
 		User = ContentType.objects.get(app_label = 'auth', model = 'user').model_class()
@@ -189,10 +189,11 @@ class Share(get_inc_dec_mixin(['money'])):
 	
 	def save(self, *args, **kwargs):
 		super(Share, self).save(*args, **kwargs)
+		total_money = self.fund.total_money        
 		cursor = connection.cursor()
 		cursor.execute(
-				"""UPDATE funds_share, (SELECT SUM(money) as sum FROM funds_share WHERE fund_id=%d) as t SET percentage=ROUND(money/t.sum*100,4)
-				""" % self.fund.id
+				"""UPDATE funds_share SET percentage=ROUND(money/"%s"*100,4)
+				""" % total_money
 		)
 	
 	def pre_set_money(self, value):

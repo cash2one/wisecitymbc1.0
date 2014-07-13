@@ -9,6 +9,9 @@
 	{% if permissions.has_report %}
 	<li><a href="#pr" data-toggle="pill"><i class="fa fa-2x fa-file-archive-o"></i> {{reports_title}}</a></li>
 	{% endif %}
+	{% if info.account_type == 'person' %}
+	<li><a href="#dp" data-toggle="pill"><i class="fa fa-2x fa-file-archive-o"></i> 债务报告</a></li>
+	{% endif %}
 	{% if permissions.publish_passage %}
 	<li><a href="#pl" data-toggle="pill"><i class="fa fa-2x fa-file-text-o"></i> 新闻 </a></li>
 	{% endif %}
@@ -20,14 +23,28 @@
 <div class="col-md-9">
   <div class="tab-content">
 {% block tabs %}
+	{% if info.account_type == 'person' %}
+	<div class="tab-pane fade in" id="dp">
 	{% if is_self %}
-	<div class="tab-pane fade" id="cf">
+		<form id="debtReportsUploadForm">
+			<div class="fileinput-button btn btn-mese2014-success">
+				<span>添加文件...</span>
+				<input type="file" name="file">
+			</div>
+		</form>
+	{% endif %}
+		<br>
+		<ul id="debtReportsFilesList" class="list-group mese2014-list-group"></ul>
+	</div>
+	{% endif %}
+	{% if is_self %}
+	<div class="tab-pane fade in" id="cf">
 		<ul class="nav nav-pills nav-utinfo" id="cful">
 			<li><a href="#cfinfo" data-toggle="pill">信息</a></li>
 			<li><a href="#cfpsw" data-toggle="pill">密码</a></li>
 		</ul>
 		<div class="tab-content">
-			<div class="tab-pane fade" id="cfpsw">
+			<div class="tab-pane fade in" id="cfpsw">
 				<form id="setpswForm" class="mese col-md-offset-3 col-md-6" action="/api/users/my/set_password/" captcha>
 					<input type="password" name="old_password" data-label="旧密码" validator="required">
 					<input type="password" name="new_password" data-label="新密码" id="newPassword" validator="required">
@@ -35,7 +52,7 @@
 					<input type="submit" value="修改">
 				</form>
 			</div>
-			<div class="tab-pane fade" id="cfinfo">
+			<div class="tab-pane fade in" id="cfinfo">
 				<form id="configForm" action="/api/users/my/profile/" method="patch" class="mese col-md-offset-3 col-md-6">
 					{% block config_form %}
 					{% endblock %}
@@ -47,7 +64,7 @@
 	{% endif %}
 
 	{% if info.account_type != 'media' %}
-	<div class="tab-pane fade" id="as">
+	<div class="tab-pane fade in" id="as">
 		<div class="container">
 			<h3>资金： {{info.assets}}</h3>
 		</div>
@@ -57,7 +74,7 @@
 			<table class="table">
 				<thead>
 					<tr>
-						<th>银行名称</th>
+						<th style="width:30%">银行名称</th>
 						<th>存款</th>
 					</tr>
 				</thead>
@@ -71,8 +88,8 @@
 			<table class="table">
 				<thead>
 					<tr>
-						<th>名称</th>
-						<th>现价</th>
+						<th style="width:30%">名称</th>
+						<th style="width:30%">现价</th>
 						<th>股份</th>
 					</tr>
 				</thead>
@@ -85,8 +102,8 @@
 			<table class="table">
 				<thead>
 					<tr>
-					<th>名称</th>
-					<th>投入资金</th>
+						<th style="width:30%">名称</th>
+						<th>投入资金</th>
 					</tr>
 				</thead>
 				<tbody id="bondBody">
@@ -98,8 +115,8 @@
 			<table class="table">
 				<thead>
 					<tr>
-					<th>名称</th>
-					<th>投入资金</th>
+						<th style="width:30%">名称</th>
+						<th>投入资金</th>
 					</tr>
 				</thead>
 				<tbody id="fundBody"> 
@@ -110,20 +127,20 @@
 	</div>
 	{% endif %}
 	{% if permissions.can_transfer and is_self %}
-	<div class="tab-pane fade" id="tm">
+	<div class="tab-pane fade in" id="tm">
 		<ul class="nav nav-pills nav-utinfo">
 			<li><a href="#tmop" data-toggle="pill">操作</a></li>
 			<li><a href="#tmlog" data-toggle="pill">转帐记录</a></li>
 		</ul>
 		<div class="tab-content">
-			<div class="tab-pane fade" id="tmlog">
+			<div class="tab-pane fade in" id="tmlog">
 				<ul class="list-group mese2014-list-group" id="tmlogsContainer">
 				<div class="pager">
 					<button class="btn btn-link pull-left" id="tmlogPrevBtn">上一页</button>
 					<button class="btn btn-link pull-right" id="tmlogNextBtn">下一页</button>
 				</div>
 			</div>
-			<div class="tab-pane fade" id="tmop">
+			<div class="tab-pane fade in" id="tmop">
 				<h4>
 					转帐规则：每转帐一次需从账户中扣除千分之一的手续费。
 				</h4>
@@ -137,7 +154,7 @@
 	</div>
 	{% endif %}
 	{% if permissions.publish_passage %}
-		<div class="tab-pane fade" id="pl">
+		<div class="tab-pane fade in" id="pl">
 			<div class="container" id="feedsContainer"></div>
 			<div class="pager">
 				<button id="feedsPrevBtn" class="btn btn-link pull-left">上一页</button>
@@ -221,7 +238,50 @@ $('a[href="#pl"]').one('show.bs.tab',function(){
 		next: "feedsNextBtn",
 		apiUrl: API.url("passages").param("author", data.id),
 		container: "feedsContainer",
-		template: "<h3 class='text-center feeds-details-title'><a href='{url}'>{title}</a></h3><div class='text-center feeds-details-info'>{created_time}</div><div class='feeds-details-text'>{content}</div>"
+		template: "<div class='container'><h3 class='text-center feeds-details-title'><a href='{url}'>{title}</a></h3><div class='text-center feeds-details-info'>{created_time}&nbsp;{% if is_self %}<a href='javascript:void(0);' data-id='{id}' class='del'>删除</a>{% endif %}</div><div class='feeds-details-text'>{content}</div></div>"
+	});
+	$("#feedsContainer").delegate('a.del', 'click', function() {
+		var $this = $(this);
+		API.url('passages').id($this.data('id')).delete()
+		.ok(function(){
+			$this.parent().parent().remove();
+		});
+	});
+});
+</script>
+{% endif %}
+
+{% if info.account_type == 'person' %}
+<script type="text/javascript">
+$("a[href='#dp']").one('show.bs.tab', function(){
+	function addFile(data) {
+		data.deleteTag = window.isSelf?'<a href="javascript:void(0);" class="del" data-id="{id}">删除</a>'.render(data):'';
+		$('<li class="list-group-item"><a href="{url}" target="_blank">{name}</a><span class="pull-right">{created_time}&nbsp;{deleteTag}</span></li>'.render(data)).prependTo($filesList);	
+	}
+
+	var $uploadForm = $("#debtReportsUploadForm"), $filesList = $("#debtReportsFilesList");
+	
+	$(window.data.profile.debt_files).each(function(){
+		addFile(this);
+	});
+	
+	$filesList.delegate("a.del", 'click', function () {
+		var $this = $(this);
+		API.url("files").url("private").url("debt-files").id($this.attr("data-id")).delete()
+		.ok(function () {
+			$this.parent().parent().remove();
+		});
+	});
+	
+	$uploadForm.fileupload({
+		iframe: true,
+		url: '/api/files/private/debt-files/',
+		autoUpload: true,
+		dataType: 'json',
+		formAccecptCharset: 'unicode',
+		done: function(e, xhr) {
+			addFile(xhr.result);
+		}
 	});
 });
 </script>
@@ -276,7 +336,6 @@ $("a[href='#cf']").one('show.bs.tab', function(){
 	});
 	$configForm.initForm({
 		callback: function() {
-			//tips("账户设置成功！");
 			window.location.href="";
 		}
 	});

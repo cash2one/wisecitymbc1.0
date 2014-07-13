@@ -12,7 +12,7 @@ from captcha.decorators import check_captcha
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
-@permission_classes([HasBond, OwnBond])
+@permission_classes([])
 def detail(request):
 	bond_id = request.REQUEST.get('uid', 0)
 	bond = get_object_or_404(models.Bond, pk = bond_id)

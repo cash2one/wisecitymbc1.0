@@ -2,8 +2,10 @@
 {% block extra_head %}
 	{% include "cdn_fileupload.html" %}
 	<script type="text/javascript">
+	$(function(){
 		window.data = decodeJSON('{{json|safe}}');
 		window.isSelf = "{{is_self}}"==="True"?true:false;
+	});
 	</script>
 {% endblock %}
 

@@ -2,14 +2,17 @@
 
 {% block main %}
 <div class="container">
-	<div class="col-md-4">
-		<h3><a href="#main" data-toggle="pill">{{object.display_name}}</a></h3>
+	<div class="col-md-3">
+		<h4>{{object.display_name}}{% if object.published %}&nbsp;<small>已发布</small>{% endif %}</h4>
 	</div>
-	<div class="col-md-4">
+	<div class="col-md-3">
+		<h4><small>@<a href="{{object.publisher.url}}">{{object.publisher.display_name}}</a></small></h4>
+	</div>
+	<div class="col-md-3">
 		<h4>已有资金：{{object.total_money}}</h4>
 	</div>
 	{% if object.published %}
-	<div class="col-md-4">
+	<div class="col-md-3">
 		<h4>当前回报率：{{object.return_rate}}%</h4>
 	</div>
 	{% endif %}

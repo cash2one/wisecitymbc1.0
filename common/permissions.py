@@ -45,11 +45,7 @@ def IsSubClass(cls_name, safe_methods = False):
 			
 	return P
 
-class HasReport(BasePermission):
-
-	def has_permission(self, request, view):
-		print request.user, request.user.profile.info
-		return request.user and isinstance(request.user.profile.info, HasReportsMixin)
+HasReport = IsSubClass(HasReportsMixin)
 		
 class IsAdminUser(BasePermission):
 

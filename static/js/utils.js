@@ -1,3 +1,13 @@
+(function($){
+$.getUrlParam = function(name){
+var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+var r = window.location.search.substr(1).match(reg);
+if (r!=null) return unescape(r[2]);return null;
+}
+$.getAnchor = function(){
+	return window.location.hash;
+}
+})(jQuery);
 emptyFunc = function(_){return _};
 function JsonToStr(o) {
 	if (o === undefined) {
@@ -314,7 +324,6 @@ $(function(){
 					validator[this] = true;
 				}
 			});
-			console.log(validator);
 			rules[$input.attr('name')] = validator;
 			$input
 			.wrap($("<div/>").addClass($inputCol))
@@ -335,17 +344,21 @@ $(function(){
 				if (!$form.valid()) return false;
 				var func = $form.data('processData')||emptyFunc, data = $form.serializeObject(), 
 					callback = $form.data('callback')||emptyFunc, method = $form.attr('method')||'post', action = $form.attr('action');
-				func(data);
+				func(data), $submit = $form.find('input[type=submit]');
+				$submit.button('loading');
 				API.raw(action)[method](data)
 				.ok(function(data){
 					$form.clearForm();
 					callback(data);
+					$submit.button('reset');
 				})
 				.paramError(function(data){
 					$form.errors(data);
+					$submit.button('reset');
 				})
 				.captchaError(function(){
 					$captchaInput.error();
+					$submit.button('reset');
 				});
 			});
 		} else {
@@ -357,19 +370,24 @@ $(function(){
 					callback = $form.data('callback');
 				callback = callback?callback[$this.attr('name')]:emptyFunc;
 				func(data);
+				$this.button('loading');
 				API.raw(action)[method](data)
 				.ok(function(data){
 					$form.clearForm();
 					callback(data);
+					$this.button('reset');
 				})
 				.paramError(function(data){
 					$form.errors(data);
+					$this.button('reset');
 				})
 				.captchaError(function(){
 					$captchaInput.error();
+					$this.button('reset');
 				});
 			});		
 		}
+		$(".btn-mese2014, .btn-login").attr('data-loading-text', '请稍候...');
 	});
 
 	var allows = [];

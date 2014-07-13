@@ -30,7 +30,7 @@ class PrivateFileAPIViewSet(ModelViewSet):
 	
 	model = PrivateFile
 	serializer_class = PrivateFileSerializer
-	permission_classes = (HasReport,)
+	permission_classes = (HasReport.new(True),)
 	
 	def dispatch(self, request, *args, **kwargs):
 		self.account = request.user.profile.info

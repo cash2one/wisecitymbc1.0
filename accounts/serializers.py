@@ -178,11 +178,13 @@ def get_serializer_by_class(cls):
 	return globals()['%sSerializer' % cls.__name__]
 	
 def get_enterprises():
-	res = []
-	for cls in (models.Company, models.FundCompany, models.Bank):
+	res = {'banks':[], 'enterprises':[]}
+	for cls in (models.Company, models.FundCompany):
 		serializer = get_serializer_by_class(cls)
-		res.extend(serializer(cls.objects.all(), many = True).data)
-		
+		res['enterprises'].extend(serializer(cls.objects.all(), many = True).data)
+	
+	serializer = get_serializer_by_class(models.Bank)
+	res['banks'].extend(serializer(cls.objects.all(), many = True).data)	
 	return res
 		
 class CreateUserSerializer(serializers.Serializer):
