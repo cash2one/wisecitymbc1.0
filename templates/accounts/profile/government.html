@@ -64,8 +64,9 @@
 				</div>
 				<div class="panel-body">
 					<form class="mese col-md-offset-2 col-md-8" id="infoForm" action="/api/info/" method="patch">
-						<input type="text" name="profit_rate" data-label="银行基准利率" validator="gt:0 lt:100">
-						<input type="text" name="inflation_rate" data-label="通货膨胀率" validation="gt:0 lt:100">
+						<input type="text" name="profit_rate" data-label="银行基准利率" validator="number gt:0 lt:100">
+						<input type="text" name="inflation_rate" data-label="通货膨胀率" validation="number gt:0 lt:100">
+						<input type="text" name="GDP" data-label="GDP" validation="number gt:0">
 						<input type="submit" value="提交">
 					</form>
 				</div>

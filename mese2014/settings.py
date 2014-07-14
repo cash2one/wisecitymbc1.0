@@ -221,7 +221,7 @@ REST_FRAMEWORK = {
 		'rest_framework.parsers.JSONParser',
 		'rest_framework.parsers.FormParser',
 	),
-	'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+	'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend','rest_framework.filters.OrderingFilter'),
 	'DATETIME_FORMAT': '%m-%d %H:%M:%S',
 	'EXCEPTION_HANDLER': 'common.exceptions.handle_403_exception'
 }

@@ -90,7 +90,7 @@ class Fund(models.Model):
 		if self.account:
 			self.account.profile.user.delete()
 			self.account.delete()
-		#self.delete()
+			self.delete()
 	
 	def finish(self):
 		shares = self.shares.prefetch_related()
@@ -111,14 +111,11 @@ class Fund(models.Model):
 	def get_absolute_url(self):
 		return '/funds/detail/?uid=%d' % self.id 
 	
-	def publish(self, delete_on_failed = True):   
+	def publish(self):   
 		if not self.total_money >= self.initial_money:
-			if delete_on_failed:
-				self._send_notification('delete', action = 'delete')
-				self._end()
-				return
-			else:
-				raise ValidationError("")
+			self._send_notification('delete', action = 'delete')
+			self._end()
+			return
 		self._send_notification('create', important = True, url = '/funds/setps/?uid=%d' % self.id)
 		self.published = True
 		self.save()        

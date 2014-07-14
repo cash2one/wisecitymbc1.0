@@ -6,7 +6,6 @@ import models, serializers
 import json
 from django.shortcuts import render_to_response
 from annoying.decorators import render_to
-
 from .permissions import CanWrite
 
 def test(a):
@@ -20,10 +19,11 @@ class BasePassageViewSet(viewsets.GenericViewSet):
 
 	model = models.Passage
 	serializer_class = serializers.PassageSerializer
+	ordering = ['-created_time']
 	
 	def get_queryset(self):
 		_type = self.request.GET.get('type', '').upper()
-		queryset = models.Passage.objects.all()
+		queryset = models.Passage.objects.all()       
 		if _type:
 			queryset = queryset.filter(type = _type)
 		return queryset	
@@ -55,7 +55,7 @@ class PassageAPIViewSet(BasePassageViewSet, viewsets.ModelViewSet):
 	filter_fields = ('type', "author")
 
 	def get_queryset(self):
-		queryset = models.Passage.objects.all()
+		queryset = models.Passage.objects.all()        
 		if self.request.QUERY_PARAMS.get('type','') == 'all':
 			queryset = queryset.exclude(type = 'ENT')
 		return queryset
@@ -67,7 +67,7 @@ class PassageAPIViewSet(BasePassageViewSet, viewsets.ModelViewSet):
 	def update(self, request, *args, **kwargs):
 		super(PassageAPIViewSet, self).update(request, author = request.user.id, *args, **kwargs)	
 		return response.Response({'url': '/webboard/passages/%d/' % self.object.id})
-		
+	
 	def list(self, request, *args, **kwargs):
 		return super(PassageAPIViewSet,self).list(self,request,*args,**kwargs)
 	

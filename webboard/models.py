@@ -53,11 +53,9 @@ class Passage(models.Model):
 		return '/webboard/passages/%d/' % self.id	
 		
 	class Meta:
-		ordering = ['-created_time', 'title']
+		ordering = ['-created_time']
 		verbose_name = u'文章'
 		verbose_name_plural = verbose_name
-		#app_label = u'新闻中心'
-		#db_table = 'webboard_passage'
 		permissions = [
 			['publish_passage', 'Publish passage.']
 		]
@@ -68,7 +66,6 @@ class Comment(models.Model):
 	author = models.ForeignKey(User, related_name = 'comments')
 	created_time = models.DateTimeField(auto_now_add = True)
 	passage = models.ForeignKey(Passage, related_name = 'comments')
-	#respond_comment = models.ForeignKey('self', related_name = 'responses', blank = True, null = True)
 	
 	def send(self):
 		dispatcher.send('comment', {

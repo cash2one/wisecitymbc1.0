@@ -1416,12 +1416,12 @@ th {
   padding: 8px;
   line-height: 1.428571429;
   vertical-align: top;
-  border-top: 1px solid #dddddd;
+  border-top: 1px dashed #dddddd;
 }
 
 .table thead > tr > th {
   vertical-align: bottom;
-  border-bottom: 2px solid #dddddd;
+  border-bottom: 1px dashed #dddddd;
 }
 
 .table caption + thead tr:first-child th,
@@ -1434,7 +1434,7 @@ th {
 }
 
 .table tbody + tbody {
-  border-top: 2px solid #dddddd;
+  border-top: 1px dashed #eee;
 }
 
 .table .table {
@@ -1460,7 +1460,7 @@ th {
 .table-bordered > thead > tr > td,
 .table-bordered > tbody > tr > td,
 .table-bordered > tfoot > tr > td {
-  border: 1px solid #dddddd;
+  border: 1px dashed #dddddd;
 }
 
 .table-bordered > thead > tr > th,
@@ -1579,7 +1579,7 @@ table th[class*="col-"] {
     margin-bottom: 15px;
     overflow-x: scroll;
     overflow-y: hidden;
-    border: 1px solid #dddddd;
+    border: 1px solid #eee;
   }
   .table-responsive > .table {
     margin-bottom: 0;

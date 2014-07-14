@@ -12,6 +12,7 @@ class InfoSerializer(serializers.Serializer):
 	
 	inflation_rate = serializers.DecimalField(validators = [validate_percent])
 	profit_rate = serializers.DecimalField(validators = [validate_percent])
+	GDP = serializers.DecimalField()
 	
 	@classmethod
 	def get_object(cls):

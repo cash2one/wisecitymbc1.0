@@ -26,4 +26,3 @@ def check_captcha(field_name = 'captcha'):
 			return func_inner
 		
 	return outer
-

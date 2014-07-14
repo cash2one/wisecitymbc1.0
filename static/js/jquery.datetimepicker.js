@@ -7,84 +7,12 @@
 	'use strict'
 	var default_options  = {
 		i18n:{
-			ru:{ // Russian
-				months:[
-					'Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
-				],
-				dayOfWeek:[
-					"Вск", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"
-				]
-			},
 			en:{ // English
 				months: [
 					"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
 				],
 				dayOfWeek: [
 					"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-				]
-			},
-			de:{ // German
-				months:[
-					'Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'
-				],
-				dayOfWeek:[
-					"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"
-				]
-			},
-			nl:{ // Dutch
-				months:[
-					"januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"
-				],
-				dayOfWeek:[
-					"zo", "ma", "di", "wo", "do", "vr", "za"
-				]
-			},
-			tr:{ // Turkish
-				months:[
-					"Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
-				],
-				dayOfWeek:[
-					"Paz", "Pts", "Sal", "Çar", "Per", "Cum", "Cts"
-				]
-			},
-			fr:{ //French
-				months:[
-			    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-				],
-				dayOfWeek:[
-					"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"
-				]
-			},
-			es:{ // Spanish
-				months: [
-					"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-				],
-				dayOfWeek: [
-					"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"
-				]
-			},
-			th:{ // Thai
-				months:[
-					'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'
-				],
-				dayOfWeek:[
-					'อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'
-				]
-			},
-			pl:{ // Polish
-				months: [
-					"styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec", "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"
-				],
-				dayOfWeek: [
-					"nd", "pn", "wt", "śr", "cz", "pt", "sb"
-				]
-			},
-			pt:{ // Portuguese
-				months: [
-					"Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-				],
-				dayOfWeek: [
-					"Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"
 				]
 			},
 			ch:{ // Simplified Chinese
@@ -101,22 +29,6 @@
 				],
 				dayOfWeek: [
 					"Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"
-				]
-			},
-			kr:{ // Korean
-				months: [
-                    "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"
-				],
-				dayOfWeek: [
-                    "일", "월", "화", "수", "목", "금", "토"
-				]
-			},
-			it:{ // Italian
-				months: [
-					"Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-				],
-				dayOfWeek: [
-					"Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"
 				]
 			}
 		},
