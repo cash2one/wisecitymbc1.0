@@ -205,7 +205,7 @@ REST_FRAMEWORK = {
     # Only used if the `serializer_class` attribute is not set on a view.
 	'PAGINATE_BY': 10, 
 	'PAGINATE_BY_PARAM': 'limit',  # Allow client to override, using `?page_size=xxx`.
-    'MAX_PAGINATE_BY': 50, 
+    'MAX_PAGINATE_BY': 250, 
     'DEFAULT_MODEL_SERIALIZER_CLASS':
         'rest_framework.serializers.HyperlinkedModelSerializer',
 

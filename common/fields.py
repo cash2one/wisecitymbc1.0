@@ -17,7 +17,7 @@ class TimeDeltaSerializerField(WritableField):
 		kwargs.pop('min_value','')
 		super(TimeDeltaSerializerField, self).__init__(*args, **kwargs)
 
-class TimeDeltaField(models.PositiveIntegerField):
+class TimeDeltaField(models.IntegerField):
 
 	descrption = "datetime.timedelta"
 	__metaclass__ = models.SubfieldBase

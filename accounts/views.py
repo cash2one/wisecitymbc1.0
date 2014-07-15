@@ -15,6 +15,8 @@ from securities.funds.serializers import FundSerializer
 import models, serializers
 import json
 
+from django.contrib.auth.decorators import login_required
+
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
 def set_password(request):
@@ -36,6 +38,7 @@ def companies(request):
 		_.append(i)
 	return Response(_)
 	
+@login_required	
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
 def profile(request):
@@ -79,6 +82,33 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 			return self.request.user
 		else:
 			return super(UserAPIViewSet, self).get_object()
+			
+	def list(self, request, *args, **kwargs):
+		self.object_list = self.filter_queryset(self.get_queryset())
+
+		if not self.allow_empty and not self.object_list:
+			class_name = self.__class__.__name__
+			error_msg = self.empty_error % {'class_name': class_name}
+			raise Http404(error_msg)
+
+		fields = request.REQUEST.get('fields','')
+		if fields:
+			fields = fields.split(',')
+		page = self.paginate_queryset(self.object_list)
+		if page is not None:
+			serializer = self.get_pagination_serializer(page, profile_fields = fields)
+		else:
+			serializer = self.get_serializer(self.object_list, many=True, profile_fields = fields)
+
+		return Response(serializer.data)
+			
+	def retrieve(self, request, *args, **kwargs):
+		self.object = self.get_object()
+		fields = request.REQUEST.get('fields', [])
+		if fields:
+			fields = fields.split(',')
+		serializer = self.get_serializer_class()(self.object, profile_fields = fields)
+		return Response(serializer.data)
 			
 	def create(self, request, *args, **kwargs):
 		serializer = serializers.CreateUserSerializer(data = request.DATA)

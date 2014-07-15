@@ -55,8 +55,8 @@ class StoreSerializer(serializers.Serializer):
 		
 class TransferLogSerializer(serializers.ModelSerializer):
 	
-	transfer_by = AccountField(required = False)
-	transfer_to = AccountField(required = False)	
+	transfer_by = AccountField(fields = ['account_type','display_name','url'])
+	transfer_to = AccountField(fields = ['account_type','display_name','url'])	
 	
 	class Meta:
 		model = TransferLog
@@ -64,7 +64,7 @@ class TransferLogSerializer(serializers.ModelSerializer):
 
 class DepositSerializer(serializers.ModelSerializer):
 
-	bank = BankSerializer()
+	bank = BankSerializer(exclude = ['members', 'assets'])
 
 	class Meta:
 		model = Deposit

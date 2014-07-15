@@ -1,13 +1,11 @@
-(function($){
 $.getUrlParam = function(name){
-var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
-var r = window.location.search.substr(1).match(reg);
-if (r!=null) return unescape(r[2]);return null;
+	var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)"),
+		r = window.location.search.substr(1).match(reg);
+	return (r!==null?unescape(r[2]):null);
 }
 $.getAnchor = function(){
 	return window.location.hash;
-}
-})(jQuery);
+};
 emptyFunc = function(_){return _};
 function JsonToStr(o) {
 	if (o === undefined) {
@@ -32,8 +30,8 @@ function JsonToStr(o) {
 	}
 	return o.toString().replace(/\"\:/g, '":""');
 }
-window.encodeJSON = JSON.stringify||JsonToStr;
-window.decodeJSON = JSON.parse||function(d){return Function('return '+d)();};
+window.encodeJSON = JSON?JSON.stringify:JsonToStr;
+window.decodeJSON = JSON?JSON.parse:function(d){return Function('return '+d)();};
 
 Object.clone = function(sObj){ 
 	if(typeof sObj !== "object"){   
@@ -108,14 +106,22 @@ $.fn.captcha = function() {
 	}
 };
 
+$.fn.clearError = function(){
+	var a = $(this);
+	a.find('input') 
+	 .not(':button, :submit, :reset, :hidden') 
+	 .removeClass('blank');
+	a
+	 .find('div.alert-login').removeClass('visible');
+};
+
 $.fn.clearForm = function() {
-	$(':input', '#'+$(this).attr("id"))  
+	var a=$(this);
+	a.find('input') 
 	 .not(':button, :submit, :reset, :hidden')  
 	 .val('')  
 	 .removeAttr('checked')  
-	 .removeAttr('selected')
-	 .removeClass('blank')
-	 .find('div.alert-login').hide();
+	 .removeAttr('selected');
 };
 
 $.fn.placeError = function(msg){
@@ -140,6 +146,7 @@ $.fn.errors = function(data) {
 			url: url,
 			type: method,
 			contentType:"application/json",
+			cache:false,
 			data: data,
 			dataType: 'json'
 		});
@@ -177,7 +184,8 @@ $.fn.errors = function(data) {
 						400:"paramError", 
 						405:"methodNotAllowed", 
 						420:"captchaError",
-						200: "ok"
+						200: "ok",
+						500: "serverError"
 				}, callbacks = {};
 					if (this.type==='raw') {
 						this.paramStr = '';
@@ -192,7 +200,12 @@ $.fn.errors = function(data) {
 					if (i != 200)
 					(function(code){ 
 						statusActions[code] = function (data) {
-							callbacks[code].fire(decodeJSON(data.responseText));
+							console.log(code);
+							if (code!=="500") {
+								callbacks[code].fire(decodeJSON(data.responseText));
+							} else {
+								callbacks[code].fire(data.responseText);
+							}
 						}
 					})(i);
 				
@@ -288,6 +301,7 @@ $(function(){
 	$("form.mese").each(function(){
 		function getColClassName(n) {return 'col-sm-'+n;}
 		var $form = $(this).addClass('form-horizontal'), isCaptcha = $form.attr("captcha")!==undefined, 
+			isClear = !($form.attr("not-clear")!==undefined),
 			$inputWidth = parseInt($form.attr("input-width"))||9,
 			$inputCol = getColClassName($inputWidth), $labelCol = getColClassName(12-$inputWidth),
 			$inputs = $form.find("input, select, textarea").not(":submit"),
@@ -348,7 +362,9 @@ $(function(){
 				$submit.button('loading');
 				API.raw(action)[method](data)
 				.ok(function(data){
-					$form.clearForm();
+					$form.clearError();
+					if (isClear)
+						$form.clearForm();
 					callback(data);
 					$submit.button('reset');
 				})
@@ -358,6 +374,10 @@ $(function(){
 				})
 				.captchaError(function(){
 					$captchaInput.error();
+					$submit.button('reset');
+				})
+				.serverError(function(){
+					toastr.error("有错误发生了，已及时通知管理员，不便之处敬请谅解。", "啊欧～～", {timeOut:3000});
 					$submit.button('reset');
 				});
 			});
@@ -373,7 +393,9 @@ $(function(){
 				$this.button('loading');
 				API.raw(action)[method](data)
 				.ok(function(data){
-					$form.clearForm();
+					$form.clearError();
+					if (isClear)
+						$form.clearForm();
 					callback(data);
 					$this.button('reset');
 				})
@@ -383,6 +405,10 @@ $(function(){
 				})
 				.captchaError(function(){
 					$captchaInput.error();
+					$this.button('reset');
+				})
+				.serverError(function(){
+					toastr.error("有错误发生了，已及时通知管理员，不便之处敬请谅解。", "啊欧～～", {timeOut:3000});
 					$this.button('reset');
 				});
 			});		

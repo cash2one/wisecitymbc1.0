@@ -14,25 +14,20 @@
     <nav class="mese-header" role="navigation">
 	  <div class="navbar-inner">
 	    <div class="container">
-               <div class="navbar-header">
+        <div class="navbar-header">
 		      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#mese-navbar-collapse">
-			    <span class="sr-only">Toggle navigation</span>
-			    <span class="icon-bar"></span>
-			    <span class="icon-bar"></span>
-			    <span class="icon-bar"></span>
+					  <span class="sr-only">Toggle navigation</span>
+					  <span class="icon-bar"></span>
+					  <span class="icon-bar"></span>
+					  <span class="icon-bar"></span>
 		      </button>
-                   <a class="navbar-brand" href="/"><img src="//mese2014.sinaapp.com/static/img/LOGO.min.png" style="width:48px;margin-top:-10px;"></img></a>
-               </div>
-		  <div class="collapse navbar-collapse" id="mese-navbar-collapse" style="height :50px;">
+          <a class="navbar-brand" href="/">
+          	<img src="//mese2014.sinaapp.com/static/img/LOGO.min.png" style="width:48px;margin-top:-10px;"></img>
+          </a>
+        </div>
+        				<div class="collapse navbar-collapse" id="mese-navbar-collapse" style="height :50px;">
 	        <ul class="nav" id="topnav">
-                <script>
-                	$(function(){
-                		var a = API.url("info");
-                    a.get().ok(function(data){
-    									$("#start").parent().before("<li><a href='javascript:void(0)'>银行基准利率：{profit_rate}</a></li><li><a href='javascript:void(0);'>GDP：{GDP}</li><li><a href='javascript:void(0);'>通货膨胀率：{inflation_rate}</a></li>".render(data));
-    								})
-    							});</script>
-		      <li><a href="/" id="start">首页</a></li>
+		      <li><a href="/">首页</a></li>
 		      <li><a href="/securities/">交易大厅</a></li>
 					<li><a href="/accounts/companies/">企业信息</a></li>
 		      <li><a href="/webboard/passages/?type=">新闻中心</a></li>
@@ -42,6 +37,23 @@
 		      {% else %}
 		      <li><a href="/accounts/login/">登录</a></li>
 		      {% endif %}
+		    </ul>
+	      </div>
+		  	<div class="collapse navbar-collapse" id="mese-navbar-collapse" style="height :25px;">
+	        <ul class="nav-info nav" id="topnav">
+            <script type="text/javascript">
+            	$(function(){
+            		API.url("timeline").get().ok(function(data){
+            			$("#start").parent()
+            			.before("<li><a href='javascript:void(0);'>系统时间：<b>{year}年 第{quarter}季度<b></a></li>".render(data));
+            		});
+                API.url("info").get().ok(function(data){
+									$("#start").parent()
+									.before("<li><a href='javascript:void(0)'>银行基准利率：{profit_rate}%</a></li><li><a href='javascript:void(0);'>GDP：{GDP}</li><li><a href='javascript:void(0);'>通货膨胀率：{inflation_rate}%</a></li>".render(data));
+								})
+							});
+						</script>
+		      <li><a id="start" style="padding:0;"></a></li>
 		    </ul>
 	      </div>
 		</div>
@@ -124,12 +136,12 @@
     $(function(){
 			$('#mese-navbar-collapse').collapse('show');
 			API.list({
-	      apiUrl: API.url("passages").param("type","GOV"),
+	      apiUrl: API.url("passages").param("type","GOV").param('fields','title,url,created_time'),
 	      container: "GOV_container",
 	      template: "<li class='list-group-item'><a href='{url}'>{title}</a><span class='pull-right'>{created_time}</span></li>"
     	});
       API.list({
-        apiUrl:API.url("stocks"),
+        apiUrl:API.url("stocks").param('fields','display_name,current_price,url'),
         container:"STO_container",
         template:"<tr><th>{display_name}</th><th>{current_price}</th><th><a href='{url}'>详情</a></th></tr>"
       });
@@ -144,7 +156,7 @@
         template:"<tr><th>{display_name}</th><th>{current_price}</th></tr>"
       });
       API.list({
-        apiUrl: API.url("passages").param("type","MED"),
+        apiUrl: API.url("passages").param("type","MED").param('fields','title,url,created_time'),
         container: "MED_container",
         template: "<li class='list-group-item'><a href='{url}'>{title}</a><span class='pull-right'>{created_time}</span></li>"
       });
@@ -177,7 +189,7 @@
 						$(data.results).each(function(){	
 							var $msg = [this.message];
 							if (this.url)
-							$msg.push("<br><a url='{url}' href='javascript:void(0);' class='detail'>详情</a>".render(this));
+							$msg.push("<br><a url='{url}' href='javascript:void(0);' data-id='{id}' class='detail'>详情</a>".render(this));
 							$msg.push("&nbsp;<a href='javascript:void(0);' id='{id}' class='confirm'>确认</a>".render(this))
 							console.log($msg);
 							toastr.info($msg.join(""), "系统消息")
@@ -191,8 +203,8 @@
 							})
 							.parent().find('a.detail').click(function(){
 								var that = $(this);
-								API.url("notifications").id(that.attr("id")).url("confirm").get(function(){
-									window.loction.href = that.attr('url');
+								API.url("notifications").id(that.data("id")).url("confirm").get().ok(function(){
+									window.location.href = that.attr('url');
 								});
 							});
 						});

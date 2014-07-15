@@ -69,7 +69,7 @@ class PassageAPIViewSet(BasePassageViewSet, viewsets.ModelViewSet):
 		return response.Response({'url': '/webboard/passages/%d/' % self.object.id})
 	
 	def list(self, request, *args, **kwargs):
-		return super(PassageAPIViewSet,self).list(self,request,*args,**kwargs)
+		return super(PassageAPIViewSet,self).list(request,*args,**kwargs)
 	
 class CommentAPIViewSet(viewsets.ModelViewSet):
 

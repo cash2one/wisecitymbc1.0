@@ -217,11 +217,11 @@ class BaseSerializer(WritableField):
         if fields:
             allowed = set(fields)
             for field_name in existing - allowed:
-                self.fields.pop(field_name)
+                self.fields.pop(field_name,None)
         if exclude:
             disallowed = set(exclude)
             for field_name in disallowed & existing:
-                self.fields.pop(field_name)
+                self.fields.pop(field_name,None)
 
         if many and instance is not None and not hasattr(instance, '__iter__'):
             raise ValueError('instance should be a queryset or other iterable with many=True')

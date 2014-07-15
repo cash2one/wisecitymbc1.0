@@ -478,9 +478,9 @@ $.extend($.validator, {
 			.not(":submit, :reset, :image, [disabled]")
 			.not( this.settings.ignore )
 			.filter(function() {
-				if ( !this.name && validator.settings.debug && window.console ) {
+				/*if ( !this.name && validator.settings.debug && window.console ) {
 					console.error( "%o has no name assigned", this);
-				}
+				}*/
 
 				// select only the first element for each name, and only those with rules specified
 				if ( this.name in rulesCache || !validator.objectLength($(this).rules()) ) {

@@ -92,11 +92,17 @@ class ListModelMixin(object):
             raise Http404(error_msg)
 
         # Switch between paginated or standard style responses
+        fields = request.REQUEST.get('fields')
+        if fields:
+            fields = fields.split(',')
+        exclude = request.REQUEST.get('exclude', '')
+        if exclude:
+            exclude = exclude.split(',')            
         page = self.paginate_queryset(self.object_list)
         if page is not None:
-            serializer = self.get_pagination_serializer(page)
+            serializer = self.get_pagination_serializer(page, fields, exclude = exclude)
         else:
-            serializer = self.get_serializer(self.object_list, many=True)
+            serializer = self.get_serializer(self.object_list, many=True, fields = fields, exclude = exclude)
 
         return Response(serializer.data)
 
@@ -107,7 +113,13 @@ class RetrieveModelMixin(object):
     """
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
-        serializer = self.get_serializer(self.object)
+        fields = request.REQUEST.get('fields','')
+        exclude = request.REQUEST.get('exclude', '')
+        if exclude:
+            exclude = exclude.split(',')
+        if fields:
+            fields = fields.split(',')
+        serializer = self.get_serializer_class()(self.object, fields = fields, exclude = exclude)
         return Response(serializer.data)
 
 

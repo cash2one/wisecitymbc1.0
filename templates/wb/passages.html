@@ -42,7 +42,7 @@
 		  	API.list({
 		  		prev: 'prevBtn',
 		  		next: 'nextBtn',
-		  		apiUrl: API.url('passages').param('type', utype),
+		  		apiUrl: API.url('passages').param('type', utype).param('fields','id,author,created_time,title'),
 		  		container: 'feeds-container',
 		  		processData: function (data) {
 		  				data.icon = "<i class='fa {icon}'></i>".render({icon:icons[data.type]});

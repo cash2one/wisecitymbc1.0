@@ -344,6 +344,9 @@ color:#CCC;font-size: 1em;border-radius:0px;margin-top:10px;}
 	color:#AAA;
 	
 }
+ul.nav-info > li, ul.nav-info > li > a {
+	padding:0 0 15px 15px!important;
+}
 .nav-utinfo > li > a:hover,
 .nav-utinfo > li > a:active,
 .nav-utinfo > li > a:focus {
@@ -357,12 +360,12 @@ color:#CCC;font-size: 1em;border-radius:0px;margin-top:10px;}
 		color:#FFF;
 	background-color: transparent!important;
 }
-.panel-mese2014 > .panel-heading {margin-top:0px;}
-.row {padding:0px 10px;}
+.panel-mese2014 > .panel-heading {margin-top:0;}
+.row {padding:0 10px;}
 .chart-container {
 	height:300px;
 }
-.mese2014-list-group {padding:0px 15px;}
+.mese2014-list-group {padding:0 15px;}
 .mese2014-list-group > .list-group-item {
 	color:#CCC;
 	background-color:#111;
@@ -370,7 +373,7 @@ color:#CCC;font-size: 1em;border-radius:0px;margin-top:10px;}
 	border-bottom-style: dashed;
 	border-left-color: transparent;
 	border-right-color: transparent;
-	border-radius:0px;
+	border-radius:0;
 }
 .no-padding {
 	padding-left: 0;

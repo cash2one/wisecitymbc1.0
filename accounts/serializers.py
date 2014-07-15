@@ -15,6 +15,7 @@ class AccountField(serializers.WritableField):
 	def __init__(self, *args, **kwargs):
 		self.exclude = kwargs.pop('exclude',[])
 		self.fields = kwargs.pop('fields', [])
+		self.content_type = kwargs.pop('content_type', True)
 		return super(AccountField, self).__init__(*args, **kwargs)
 	
 	def field_to_native(self, obj, field_name):
@@ -34,8 +35,9 @@ class AccountField(serializers.WritableField):
 		if isinstance(enter_data, models.Account):
 			cls = ContentType.objects.get(app_label = 'accounts', model = enter_data.__class__.__name__)
 			into[field_name] = enter_data
-			into['%s_type' % field_name] = cls
-			into['%s_object_id' % field_name] = enter_data.id
+			if self.content_type:
+				into['%s_type' % field_name] = cls
+				into['%s_object_id' % field_name] = enter_data.id
 			return enter_data
 			
 		if isinstance(enter_data, (str, unicode)):
@@ -53,8 +55,9 @@ class AccountField(serializers.WritableField):
 		except cls.model_class().DoesNotExist:
 			raise serializers.ValidationError(u"用户%s不存在。" % enter_data['display_name'])
 		into[field_name] = obj
-		into['%s_type' % field_name] = cls
-		into['%s_object_id' % field_name] = obj.id
+		if self.content_type:
+			into['%s_type' % field_name] = cls
+			into['%s_object_id' % field_name] = obj.id
 		
 		return obj
 
@@ -176,6 +179,10 @@ class UserSerializer(serializers.ModelSerializer):
 	profile  = serializers.SerializerMethodField('get_profile')
 	url = serializers.SerializerMethodField('get_url')
 	
+	def __init__(self, *args, **kwargs):
+		self.profile_fields = kwargs.pop('profile_fields', [])
+		return super(UserSerializer, self).__init__(*args, **kwargs)
+	
 	def get_url(self, obj):
 		return '%s?uid=%d' % (reverse('accounts.profile'), obj.id)
 
@@ -184,7 +191,7 @@ class UserSerializer(serializers.ModelSerializer):
 		if profile is None:
 			return {}
 		cls_name = '%sSerializer' % profile.__class__.__name__
-		return globals()[cls_name](obj.profile.info, safe_fields = self.safe_fields).data
+		return globals()[cls_name](obj.profile.info, safe_fields = self.safe_fields, fields = self.profile_fields).data
 		
 	class Meta:
 		model = User

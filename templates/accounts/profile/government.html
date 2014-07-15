@@ -16,17 +16,15 @@
 		<li><a href="#mgtl" data-toggle="pill">其他管理</a></li>
 	</ul>
 	<div class="tab-content">
-        <div class="tab-pane fade in" id="mgusr">
-            <div class="col-sm-offset-3 col-sm-6">                
-        		<form class="mese" id="usrForm">
-                    <select data-label="用户" id="userSelect">
-                    
-                	</select>
-                    <input type="text" name="money" data-label="资金" validator="required number min:0">
-                    <input type="submit" name="提交">
-                </form>
-            </div>
-        </div>
+    <div class="tab-pane fade in" id="mgusr">
+      <div class="col-sm-offset-3 col-sm-6">                
+				<form class="mese" id="usrForm" not-clear>
+          <select data-label="用户" name="account" id="userSelect"></select>
+          <input type="text" name="money" data-label="资金" validator="required number min:0">
+          <input type="submit" value="提交">
+        </form>
+      </div>
+    </div>
 		<div class="tab-pane fade in" id="mgcs">
 			<form class="col-sm-offset-3 col-sm-6 mese" id="csForm" action="/api/stocks/">
 				<input type="text" name="owner" data-label="发布者" validator="required maxlength:20">
@@ -75,7 +73,7 @@
 					其他数据
 				</div>
 				<div class="panel-body">
-					<form class="mese col-md-offset-2 col-md-8" id="infoForm" action="/api/info/" method="patch">
+					<form class="mese col-md-offset-2 col-md-8" id="infoForm" action="/api/info/" method="patch" not-clear>
 						<input type="text" name="profit_rate" data-label="银行基准利率" validator="number gt:0 lt:100">
 						<input type="text" name="inflation_rate" data-label="通货膨胀率" validation="number gt:0 lt:100">
 						<input type="text" name="GDP" data-label="GDP" validation="number gt:0">
@@ -109,23 +107,24 @@
 <script type="text/javascript">
 $("a[href=#mgusr]").one('show.bs.tab', function(){
   var select=$("#userSelect"), s=[], $form=$("#usrForm");
-    $form.initForm({
+  $form.initForm({
         callback:function(data){
             tips("修改成功！");
+            var $selected = select.find(':selected');
+            $selected.data("assets", $form.find('input[name=money]').val());
         }
     });
   select.on('change',function(){
-      var val=select.find(':selected').data("id");
+      var assets=select.find(':selected').data("assets");
       $form.attr('action','/api/users/'+select.val()+'/dec/');
-      $form.find('[name=money]').val($form.data('data').results[parseInt(val)].profile.assets);
+      $form.find('input[name=money]').val(assets);
   });
-  API.url('users').param('limit','100').get()
+  API.url('users').param('limit','300').param('fields', 'display_name,assets').get()
   .ok(function(data){
-      $form.data("data",data);
       $(data.results).each(function(i){
           if (this.username==='superuser'||this.profile.account_type==='media') return;
           this.i=i;
-          s.push('<option value="{id}" data-id="{i}">{profile.display_name}</option>'.render(this));
+          s.push('<option value="{id}" data-assets="{profile.assets}">{profile.display_name}</option>'.render(this));
       });
       $(s.join("")).appendTo(select);
       select.trigger('change');

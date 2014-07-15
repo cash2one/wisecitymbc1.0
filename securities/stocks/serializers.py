@@ -9,8 +9,8 @@ from django.db.models import Sum
 
 class CreateStockSerializer(serializers.Serializer):
 
-	owner = AccountField()
-	proxy = AccountField()
+	owner = AccountField(content_type = False)
+	proxy = AccountField(content_type = False)
 	current_price = serializers.DecimalField()
 	total_shares = serializers.IntegerField()
 	display_name = serializers.CharField()
