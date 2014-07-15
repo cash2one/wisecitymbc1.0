@@ -82,6 +82,25 @@ class PersonalSerializer(AccountSerializer):
 	class Meta:
 		model = models.PersonalModel
 		
+class DecAssetsSerializer(serializers.Serializer):
+	
+	money = serializers.DecimalField()
+	account = AccountField()
+	
+	def validat___money(self, attrs, field_name):
+		account = attrs['account']
+		money = attrs[field_name]
+		if account.assets < money:
+			raise serializers.ValidationError("没有足够的钱！")
+		return attrs
+		
+	def restore_object(self, attrs, instance = None):
+		account = attrs['account']
+		money = attrs['money']
+		account.assets = money
+		account.save()        
+		return account
+		
 class GovernmentSerializer(PersonalSerializer):
 	
 	class Meta:

@@ -98,6 +98,16 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 		request.user.save()
 		return Response("OK")
 	
+	@action(methods=['POST'])
+	def dec(self, request, *args, **kwargs):
+		data = dict(request.DATA)
+		data['account'] = self.get_object().profile.info
+		serializer = serializers.DecAssetsSerializer(data = data)
+		if serializer.is_valid():
+			return Response('OK')
+		else:
+			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+	
 	@action(methods=['GET', 'PATCH'])
 	def profile(self, *args, **kwargs):
 		profile = self.get_object().profile.info

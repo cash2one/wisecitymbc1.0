@@ -1,7 +1,6 @@
 {% extends "index.html" %}
 {% block title %}个人中心{% endblock %}
 {% block extra_head %}
-	{% include "cdn_fileupload.html" %}
 	<script type="text/javascript">
 	$(function(){
 		window.data = decodeJSON('{{json|safe}}');

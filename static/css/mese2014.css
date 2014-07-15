@@ -91,6 +91,8 @@ padding:6px;}
   .mese-header .nav > li > a {
     padding:10px 5px!important;
   }
+  #mese-navbar-collapse {border-bottom:1px solid #ccc;}
+main .container {margin-top:15px;}
 }
 @media (min-width: 768px) {
   .mese-header .container {

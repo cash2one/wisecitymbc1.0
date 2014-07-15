@@ -6,7 +6,7 @@ from rest_framework.fields import WritableField
 
 DecimalField = partial(
 		models.DecimalField,
-		max_digits = 15,
+		max_digits = 20,
 		decimal_places = 4,
 		default = 0
 )
