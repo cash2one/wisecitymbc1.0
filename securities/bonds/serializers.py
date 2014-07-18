@@ -31,6 +31,9 @@ class ApplySerializer(serializers.Serializer):
 		
 	def validate_money(self, attrs, source):
 		money = attrs[source]
+		if self.bond.total_money+money > self.bond.max_money:
+			raise serializers.ValidationError(u"债券剩余数额不足，请调整购买金额。")
+		
 		if not self.actor.check_assets(money):
 			raise serializers.ValidationError(u"账户余额不足。")
 		

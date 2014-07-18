@@ -3,7 +3,7 @@
 	{% if info.account_type != 'media' %}
 	<li><a href="#as" data-toggle="pill"><i class="fa fa-2x fa-bar-chart-o"></i> 资产分析</a></li>
 	{% endif %}
-	{% if permissions.can_transfer and is_self%}
+	{% if permissions.can_transfer and is_self %}
 	<li><a href="#tm" data-toggle="pill"><i class="fa fa-2x fa-money"></i> 转帐 </a></li>
 	{% endif %}
 	{% if permissions.has_report %}
@@ -18,11 +18,36 @@
 	{% if is_self %}
 	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-wrench"></i> 设置 </a></li>
 	{% endif %}
+	{% if is_self %}
+	<li><a href="#no" data-toggle="pill"><i class="fa fa-2x fa-envelope-o"></i> 消息 </a></li>
+	{% endif %}
 	{% endblock %}
 </div>
 <div class="col-md-9" style="margin-top:50px">
   <div class="tab-content">
 {% block tabs %}
+	<div class="tab-pane fade in" id="no">
+		<ul class="nav nav-pills nav-utinfo" id="cful">
+			<li><a href="#noread" data-toggle="pill">已读</a></li>
+			<li><a href="#nounread" data-toggle="pill">未读</a></li>
+		</ul>		
+		<div class="tab-content">
+			<div class="tab-pane fade in" id="noread">
+				<ul class="list-group mese2014-list-group" id="noreadContainer"></ul>
+				<div class="pager">
+					<button class="btn btn-link pull-left" id="noreadPrevBtn">上一页</button>
+					<button class="btn btn-link pull-right" id="noreadNextBtn">下一页</button>
+				</div>
+			</div>
+			<div class="tab-pane fade in" id="nounread">
+				<ul class="list-group mese2014-list-group" id="nounreadContainer"></ul>
+				<div class="pager">
+					<button class="btn btn-link pull-left" id="nounreadPrevBtn">上一页</button>
+					<button class="btn btn-link pull-right" id="nounreadNextBtn">下一页</button>
+				</div>			
+			</div>
+		</div>
+	</div>
 	{% if info.account_type == 'person' %}
 	<div class="tab-pane fade in" id="dp">
 	{% if is_self %}
@@ -54,7 +79,7 @@
 				</form>
 			</div>
 			<div class="tab-pane fade in" id="cfinfo">
-				<form id="configForm" action="/api/users/my/profile/" method="patch" class="mese col-md-offset-3 col-md-6">
+				<form id="configForm" action="/api/users/my/profile/" method="patch" class="mese col-md-offset-3 col-md-6" not-clear>
 					{% block config_form %}
 					{% endblock %}
 					<input type="submit" value="修改">
@@ -69,7 +94,7 @@
 		<div class="container">
 			<h3>资金： {{info.assets}}</h3>
 		</div>
-		{%if is_self %}
+		{%if is_self or user.profile.info.account_type == 'government' %}
 			{% if permissions.can_store %}
 			<h4>银行存款</h4>
 			<table class="table">
@@ -130,8 +155,11 @@
 	{% if permissions.can_transfer and is_self %}
 	<div class="tab-pane fade in" id="tm">
 		<ul class="nav nav-pills nav-utinfo">
+			{% if is_self %}
 			<li><a href="#tmop" data-toggle="pill">操作</a></li>
+			{% endif %}
 			<li><a href="#tmlog" data-toggle="pill">转帐记录</a></li>
+			<li><a href="#rclog" data-toggle="pill">转入记录</a></li>
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane fade in" id="tmlog">
@@ -141,16 +169,25 @@
 					<button class="btn btn-link pull-right" id="tmlogNextBtn">下一页</button>
 				</div>
 			</div>
+			<div class="tab-pane fade in" id="rclog">
+				<ul class="list-group mese2014-list-group" id="rclogsContainer">
+				<div class="pager">
+					<button class="btn btn-link pull-left" id="rclogPrevBtn">上一页</button>
+					<button class="btn btn-link pull-right" id="rclogNextBtn">下一页</button>
+				</div>
+			</div>
+			{% if is_self %}
 			<div class="tab-pane fade in" id="tmop">
 				<h4>
 					转帐规则：每转帐一次需从账户中扣除千分之一的手续费。
 				</h4>
-				<form id="transferForm"class="mese col-md-offset-3 col-md-6" action="/api/transfer/" captcha>
-							<input type="text" name="money" data-label="转账金额">
-							<input type="text" name="to" data-label="转账对象">
+				<form id="transferForm"class="mese col-md-offset-3 col-md-6" action="/api/transfer/">
+							<input type="text" name="money" data-label="转账金额" validator="required gt:0 number">
+							<input type="text" name="to" data-label="转账对象" validator="required">
 							<input type="submit" value="开始转帐">
 				</form>
 			</div>
+			{% endif %}
 		</div>
 	</div>
 	{% endif %}
@@ -183,8 +220,32 @@
   </div>
 </div>
 {% block extra_script %}
-
-{% if info.account_type != 'media' %}
+<script type="text/javascript">
+$("a[href='#no']").one('show.bs.tab', function(){
+	$("a[href='#nounread']").tab('show');
+});
+$(['read','unread']).each(function(){
+	var type = this;
+	(function(type){
+		$("a[href=#no"+type+"]").on('show.bs.tab', function(){
+			var api = API.url('notifications').param('now','');
+			(type==String('unread'))?(api = api.param('unread','True')):(api = api.param('unread','False'));
+			var template = '<li class="list-group-item">{message} <span class="pull-right">{link} {created_time}</span></li>';
+			API.list({
+				apiUrl: api,
+				container: 'no'+type+'Container',
+				next: 'no'+type+'NextBtn',
+				prev: 'no'+type+'PrevBtn',
+				processData: function(data){
+					data.link = (data.url?'<a href="{url}">详情</a>'.render(data):'');
+				},
+				template: template
+			});
+		});
+	})(type);
+});
+</script>
+{% if info.account_type != 'media' or user.profile.info.account_type == 'government' %}
 <script type="text/javascript">
 $('a[href="#as"]').one('show.bs.tab',function(){
 	var collections = {'fund':'基金','stock':'股票', 'bond':'债券', 'bank': '存款'};
@@ -198,7 +259,7 @@ $('a[href="#as"]').one('show.bs.tab',function(){
 		var body = $("#"+type+"Body"),temp = templates[type];
 		if (!body.length) continue;
 		(function(body, temp, type){
-		(type==='bank'?API.url('banks').url('deposits'):API.url(type+'s').url('shares')).param("limit", 100).get()
+		(type==='bank'?API.url('banks').url('deposits'):API.url(type+'s').url('shares').param('uid','{{user_object.id}}').param("limit", 100)).get()
 		.ok(function(data) {
 			var s=[];
 			$(data.results).each(function(){
@@ -212,15 +273,24 @@ $('a[href="#as"]').one('show.bs.tab',function(){
 </script>
 {% endif %}
 
-{% if permissions.can_transfer and is_self %}
+{% if permissions.can_transfer and is_self%}
 <script type="text/javascript">
 $("a[href='#tmlog']").on('show.bs.tab', function(){
 	API.list({
 		prev: 'tmlogPrevBtn',
 		next: 'tmlogNextBtn',
-		apiUrl: API.url('transfer').url('logs'),
+		apiUrl: API.url('transfer').url('logs').url('transfer'),
 		container: 'tmlogsContainer',
 		template: '<li class="list-group-item">转给 <a href="{transfer_to.url}">{transfer_to.display_name}</a> {money} 元.<span class="pull-right">{created_time}</span></li>'
+	});
+});
+$("a[href='#rclog']").on('show.bs.tab', function(){
+	API.list({
+		prev: 'rclogPrevBtn',
+		next: 'rclogNextBtn',
+		apiUrl: API.url('transfer').url('logs').url('receive'),
+		container: 'rclogsContainer',
+		template: '<li class="list-group-item"><a href="{transfer_by.url}">{transfer_by.display_name}</a>转给你 {money} 元.<span class="pull-right">{created_time}</span></li>'
 	});
 });
 $("a[href='#tm']").one('show.bs.tab',function(){
@@ -275,6 +345,7 @@ $("a[href='#dp']").one('show.bs.tab', function(){
 		});
 	});
 	var $dpnum=$("#dpnum"), $dppro=$("#dppro");
+	if ($uploadForm.fileupload)
 	$uploadForm.fileupload({
 		iframe: true,
 		url: '/api/files/private/debt-files/',
@@ -318,6 +389,7 @@ $("a[href='#pr']").one('show.bs.tab', function(){
 		});
 	});
 	var $prnum=$("#prnum"), $prpro=$("#prpro");
+	if ($uploadForm.fileupload)
 	$uploadForm.fileupload({
 		iframe: true,
 		url: '/api/files/private/{{reports_field}}/',

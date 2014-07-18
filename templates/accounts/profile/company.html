@@ -7,6 +7,9 @@
     所属版块：{%if info.account_type == "company"%}{{info.section}}{%else%}金融{%endif%}<br>
     行业：{%if info.account_type == "company"%}{{info.industry}}{%elif info.account_type == "bank"%}银行{%else%}基金公司{%endif%}<br>
     联系方式：{{info.contact}}<br>
+    {% if info.account_type == 'bank' %}
+    利率：{{info.rate}}%<br>
+    {% endif %}
   </div>
 </div>
 <ul id="menu" class="nav nav-pills nav-stacked nav-utinfo">
@@ -37,6 +40,7 @@
 {% if not is_self and info.account_type == 'bank' and user.profile.info.account_type != 'media' %}
 <div class="tab-pane fade in" id="atm">
 	<form id="atmForm" class="col-md-offset-3 col-md-6 mese" captcha>
+		<p>当前存款：￥<span id="spMoney"></span></p>
 		<input type="text" data-label="金额" name="money" validator="required number gt:0">
 		<input type="submit" value="存款" name="store" action="/api/banks/{{info.id}}/store/">
 		<input type="submit" value="取款" name="remove" action="/api/banks/{{info.id}}/remove/">
@@ -80,13 +84,24 @@
 {% if not is_self and info.account_type == 'bank' and user.profile.info.account_type != 'media' %}
 <script type="text/javascript">
 $('a[href="#atm"]').one('show.bs.tab', function(){
+	function updateMoney(){
+		API.url("banks").id(window.data.profile.id).url("deposits").param("fields","money").get()
+		.ok(function(data){
+			data = data.results;
+			var val=(data.length?data[0].money:"0.0000");
+			$("#spMoney").html(val);
+		});
+	}
+	updateMoney();
 	$("#atmForm").initForm({
 		callback: {
 			store: function(data){
 				tips("存款成功！");
+				updateMoney();
 			},
 			remove: function(data) {
 				tips("取款成功！");
+				updateMoney();
 			}
 		}
 	});

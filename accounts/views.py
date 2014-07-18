@@ -12,6 +12,9 @@ from common.exceptions import ParamError
 from captcha.decorators import check_captcha
 from securities.funds.serializers import FundSerializer
 
+from django.core.cache import cache
+from common.cache import get_cache_key
+
 import models, serializers
 import json
 
@@ -25,7 +28,11 @@ def set_password(request):
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
 def company_index(request):
-	res = serializers.get_enterprises()
+	cache_key = get_cache_key(request)
+	res = cache.get(cache_key)
+	if res is None:
+		res = serializers.get_enterprises()
+		cache.set(cache_key, res, 60)
 	return Response({'companies':res}, template_name = 'accounts/companies.html')
 	
 @api_view(['GET'])
@@ -110,12 +117,29 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 		serializer = self.get_serializer_class()(self.object, profile_fields = fields)
 		return Response(serializer.data)
 			
+	def destroy(self, request, *args, **kwargs):
+		user = self.get_object()
+		print user.profile.info
+		if user.profile.info:
+			print 'del'
+			user.profile.info.delete()
+		user.profile.delete()
+		
+		return super(UserAPIViewSet, self).destroy(request, *args, **kwargs)		
+			
 	def create(self, request, *args, **kwargs):
 		serializer = serializers.CreateUserSerializer(data = request.DATA)
 		if serializer.is_valid():
 			return Response(serializers.UserSerializer(serializer.object).data)
 		else:
 			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+	
+	@action(methods=['POST'])
+	def init(self, request, *args, **kwargs):
+		user = self.get_object()
+		user.set_password("12345")
+		user.save()
+		return Response("OK")
 	
 	@action(methods=['POST'])
 	@check_captcha()
@@ -167,7 +191,7 @@ def login(request):
 		return HttpResponse('',status=status.HTTP_400_BAD_REQUEST)
 	else:
 		auth.login(request, user)
-		return HttpResponse(json.dumps({'status':'success', 'referer': request.session['referer']}))
+		return HttpResponse(json.dumps({'status':'success', 'referer': request.session.get('referer','/')}))
 		
 def logout(request):
 	auth.logout(request)

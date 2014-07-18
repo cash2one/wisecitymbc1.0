@@ -154,6 +154,8 @@ INSTALLED_APPS = (
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+#SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+CACHE_TIMEOUT = 300
 
 SAE_DEFAULT_STORAGE_DOMAIN_NAME = 'mese2014storage'
 SAE_FILE_STORAGE_DOMAIN_NAME = 'mese2014file'

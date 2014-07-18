@@ -19,7 +19,6 @@ class CanStoreMixin(models.Model):
 	)
 	
 	def store_money(self, bank, money):
-		#self.check_assets(money)
 		self.dec_assets(money)
 		bank.inc_assets(money)
 		try:
@@ -36,7 +35,6 @@ class CanStoreMixin(models.Model):
 	def remove_money(self, bank, money):
 		try:
 			deposit = self.deposits.get(bank = bank)
-			#assert deposit.money >= money
 			deposit.dec_money(money)
 			self.inc_assets(money)
 			bank.dec_assets(money)
@@ -51,10 +49,22 @@ class CanTransferMixin(models.Model):
 	
 	permission = 'can_transfer'
 	
+	transfer_logs = generic.GenericRelation(
+			'transfer.TransferLog',
+			content_type_field = 'transfer_by_content_type',
+			object_id_field = 'transfer_by_object_id',
+			related_name = 'transfer_by_%(class)s',
+	)	
+	
+	receive_logs = generic.GenericRelation(
+			'transfer.TransferLog',
+			content_type_field = 'transfer_to_content_type',
+			object_id_field = 'transfer_to_object_id',
+	)	
+	
 	def transfer_money(self, transfer_to, money):
 		money = Decimal(money)
-		dec_money = money * Decimal(1.0001)
-		#self.check_assets(dec_money)
+		dec_money = money * Decimal(1.001)
 		self.dec_assets(dec_money)
 		transfer_to.inc_assets(money)
 		dispatcher.send(

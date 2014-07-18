@@ -35,14 +35,14 @@
 {{block.super}}
 <script type="text/javascript">
 $(function(){
-	if (window.data.profile.company === null) {
+	if (window.data.profile.company == null) {
 		API.url('companies').get()
 		.ok(function(data){
 			var s = [];
 			$(data).each(function(){
 				s.push("<option value='{display_name}'>{display_name}</option>".render(this));
 			});
-			$(s).appendTo($("#selCpy"));
+			$(s.join()).appendTo("#selCpy");
 		});
 	}
 });

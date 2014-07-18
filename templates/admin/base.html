@@ -1,3 +1,4 @@
+{% if user.is_authenticated and user.username == 'dada' %}
 {% load admin_static %}<!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
@@ -68,3 +69,4 @@
 
 </body>
 </html>
+{% endif %}

@@ -36,7 +36,7 @@ class Fund(models.Model):
 		(CLOSE, 'close'),
 	)
 	
-	display_name = models.CharField(max_length = 255, default = '')
+	display_name = models.CharField(max_length = 255, default = '', verbose_name = u'名称')
 
 	publisher_type = models.ForeignKey(ContentType, null = True, blank = True)
 	publisher_object_id = models.PositiveIntegerField(null = True, blank = True)
@@ -90,14 +90,14 @@ class Fund(models.Model):
 		if self.account:
 			self.account.profile.user.delete()
 			self.account.delete()
-			self.delete()
+		self.delete()
 	
 	def finish(self):
 		shares = self.shares.prefetch_related()
 		for share in self.shares.all():
 			share.owner.inc_assets(share.money)
 		shares.delete()
-		self._send_notification('end', action = 'delete')
+		self._send_notification('end')
 		self._end()
 	
 	def _send_notification(self, key, args = {}, recipient = None, **kwargs):
@@ -141,6 +141,8 @@ class Fund(models.Model):
 	
 	class Meta:
 		ordering = ['-created_time']
+		verbose_name = u'基金'
+		verbose_name_plural = u'基金'
 		permissions = (
 			('has_fund', 'Has fund'),
 			('own_fund', 'Own fund'),

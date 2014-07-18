@@ -214,11 +214,19 @@ class Bank(Enterprise, OwnFundMixin):
 	def share_profits(self):
 		rate = self.rate /100
 		cursor = connection.cursor()
+		sql = "SELECT SUM(money) FROM transfer_deposit GROUP BY bank_id HAVING bank_id=%d" % self.id
+		cursor.execute(sql)
+		result = cursor.fetchone()
+		if result:
+			result = result[0]
+		else:
+			result = 0
+		self.inc_assets(result * (1+rate))
 		cursor.execute(
 				"""UPDATE transfer_deposit SET money = ROUND(money*(1+%s), 4) WHERE bank_id=%d""" % (rate, self.id) 
 		)
 	
-class Fund(Account, HasAssetsMixin):
+class Fund(Account, HasAssetsMixin, HasStockMixin, HasBondMixin, CanTransferMixin):
 
 	pass
 	

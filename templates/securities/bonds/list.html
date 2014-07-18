@@ -25,10 +25,11 @@
 	<div id="cf" class="tab-pane fade in">
 		<form class="col-sm-offset-3 col-sm-6 mese" id="cfForm" input-width="8" action="/api/bonds/">
 			<input type="text" name="display_name" data-label="债券名" validator="required maxlength:20 minlength:1">
-			<input type="text" name="profit_rate" data-label="回报率" validator="required gt:0 lt:100">
+			<input type="text" name="profit_rate" data-label="回报率" validator="required gt:0 number lt:100">
+			<input type="text" name="max_money" data-label="卖出上限" validator="required number gt:0">
 			<input type="text" class="datetime" name="published_time" data-label="发布时间" validator="required">
 			<input type="text" class="time" name="lasted_time" data-label="运行时间" validator="required">
-			<input type="submit" value="创建基金">
+			<input type="submit" value="创建债券">
 		</form>
 	</div>
 </div>

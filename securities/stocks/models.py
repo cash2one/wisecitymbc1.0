@@ -20,14 +20,14 @@ dispatcher = Dispatcher(u'系统处理了你的股票${type}申请：成功${typ
 
 class Stock(models.Model):
 	
-	display_name = models.CharField(max_length = 255, default = '', editable = False)
+	display_name = models.CharField(max_length = 255, default = '', verbose_name=u"名称")
 	
 	publisher_type = models.ForeignKey(ContentType, null = True, blank = True)
 	publisher_object_id = models.PositiveIntegerField(null = True, blank = True)
 	publisher = generic.GenericForeignKey('publisher_type', 'publisher_object_id')
 	
-	current_price = DecimalField()
-	total_shares = models.IntegerField(blank = True, default = 0)
+	current_price = DecimalField(verbose_name='价格')
+	total_shares = models.BigIntegerField(blank = True, default = 0)
 	created_time = models.DateTimeField(auto_now_add = True)
 	
 	def transfer(self, app_seller, app_buyer, shares):
@@ -63,6 +63,8 @@ class Stock(models.Model):
 	
 	class Meta:
 		ordering = ['-current_price', '-created_time']
+		verbose_name = u'股票'
+		verbose_name_plural = u'股票'
 		permissions = (
 			('has_stock', 'Has Stock'),
 			('own_stock', 'Own stock'),
@@ -99,15 +101,8 @@ class Application(get_inc_dec_mixin(['shares', 'price'])):
 	stock = models.ForeignKey(Stock, related_name = 'applications')
 	command = models.CharField(max_length = 4, choices = COMMAND_CHOICE)
 	price  = DecimalField()
-	shares = models.IntegerField(blank = True, default = 0)
+	shares = models.BigIntegerField(blank = True, default = 0)
 	created_time = models.DateTimeField(auto_now_add = True)
-	
-	# def decrease_or_delete(self, shares):
-		# self.dec_shares(shares, commit = False)
-		# if self.shares == Decimal(0) and self.id:
-			# self.delete()
-		# else:
-			# self.save()
 	
 	def get_share(self):
 		if not hasattr(self, '_share'):
@@ -115,16 +110,7 @@ class Application(get_inc_dec_mixin(['shares', 'price'])):
 			
 		return self._share
 	
-	def clean(self):
-	#	current_price, new_price = Decimal(self.stock.current_price), Decimal(self.price)
-		#assert abs((current_price-new_price) / current_price) <= 0.2, "Stock price overflow."
-		#if self.command and self.command == self.BUY:
-		#	self.applicant.check_assets(new_price * self.shares)
-
-		#if self.command and self.command == self.SELL:
-		#	self.get_share()
-		#	if self._share is None or self._share.shares < self.shares:
-		#		raise SharesNotEnough		
+	def clean(self):	
 		pass
 	
 	def save(self, send = False, *args, **kwargs):

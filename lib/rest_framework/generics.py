@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404 as _get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import views, mixins, exceptions
@@ -13,7 +14,7 @@ from rest_framework.request import clone_request
 from rest_framework.settings import api_settings
 import warnings
 from functools import partial
-
+from common.cache import get_cache_key
 
 def strict_positive_int(integer_string, cutoff=None):
     """
@@ -176,8 +177,10 @@ class GenericAPIView(views.APIView):
         method if you want to apply the configured filtering backend to the
         default queryset.
         """
+                    
         for backend in self.get_filter_backends():
-            queryset = backend().filter_queryset(self.request, queryset, self)
+            queryset = backend().filter_queryset(self.request, queryset, self)  
+            
         return queryset
 
     def get_filter_backends(self):
@@ -264,6 +267,7 @@ class GenericAPIView(views.APIView):
 
         (Eg. return a list of items that is specific to the user)
         """
+
         if self.queryset is not None:
             return self.queryset._clone()
 

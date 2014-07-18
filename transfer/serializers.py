@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from .models import TransferLog, Deposit
 from accounts.serializers import BankSerializer, AccountField
+from decimal import Decimal
 
 class TransferSerializer(serializers.Serializer):
 	
@@ -13,8 +14,8 @@ class TransferSerializer(serializers.Serializer):
 		return super(TransferSerializer, self).__init__(*args, **kwargs)
 
 	def validate_money(self, attrs, source):
-		if not self.actor.check_assets(attrs[source]):
-			raise serializers.ValidationError(u"账户余额不足。")
+		if not self.actor.check_assets(attrs[source]*Decimal(1.001)):
+			raise serializers.ValidationError(u"账户余额不足（注意有手续费）。")
 			
 		return attrs
 

@@ -3,20 +3,21 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.decorators import action, api_view, permission_classes
-
+from rest_framework.permissions import IsAuthenticated
 import models, serializers
 from common.permissions import IsSubClass
 from accounts.models import Bank
 from accounts.serializers import BankSerializer
 from django.shortcuts import get_object_or_404
 from functools import partial
-
+from django.contrib import auth
+from django.http import Http404
 from decimal import Decimal
 from captcha.decorators import check_captcha
 
 @api_view(['POST'])
 @permission_classes([IsSubClass('CanTransferMixin')])
-@check_captcha()
+#@check_captcha()
 def transfer(request, *args, **kwargs):
 	data = serializers.TransferSerializer(data = request.DATA, actor = request.user.profile.info)
 	if data.is_valid():
@@ -51,7 +52,20 @@ class TransferLogAPIViewSet(ReadOnlyModelViewSet):
 
 	model = models.TransferLog
 	serializer_class = serializers.TransferLogSerializer
-	permission_classes = (IsSubClass('CanTransferMixin'),)
+	permission_classes = (IsSubClass('CanTransferMixin'), IsAuthenticated)
+	
+	def get_queryset(self):
+		log_type = self.kwargs.get('log_type')
+		user_id = self.request.REQUEST.get('uid', 0)
+		if user_id:
+			user = get_object_or_404(auth.models.User, pk=user_id)
+		else:
+			user = self.request.user
+		account = user.profile.info
+		if log_type == 'transfer':
+			return account.transfer_logs.all()
+		else:
+			return account.receive_logs.all()
 
 class DepositAPIViewSet(ReadOnlyModelViewSet):
 

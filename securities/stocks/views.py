@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from .permissions import HasStock
 from captcha.decorators import check_captcha
 from django.http import Http404
+from django.contrib.auth.models import User
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -67,7 +68,13 @@ class ShareAPIViewSet(GenericViewSet, mixins.ListModelMixin):
 	
 	def get_queryset(self):
 		stock_pk = self.kwargs.get('stock_pk', None)
-		qs = self.request.user.profile.info.stock_shares.all()
+		user_id = self.request.REQUEST.get('uid', 0)
+		if user_id:
+			user = get_object_or_404(User, pk=user_id)
+		else:
+			user = self.request.user
+			
+		qs = user.profile.info.stock_shares.all()
 		if stock_pk is not None:
 			qs = qs.filter(stock_id = stock_pk)
 		return qs

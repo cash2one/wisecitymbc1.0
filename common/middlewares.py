@@ -1,6 +1,5 @@
 from django.db import connection
 from django.http import HttpResponseRedirect
-
 class SQLMiddleware(object):
 
 	def process_response(self, request, response):

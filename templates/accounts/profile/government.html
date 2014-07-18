@@ -10,21 +10,69 @@
 <div class="tab-pane fade in" id="mg">
 	<ul class="nav nav-pills nav-utinfo" id="mgul">
 		<li><a href="#mgca" data-toggle="pill">创建用户</a></li>
-        <li><a href="#mgusr" data-toggle="pill">用户管理</a></li>
+    <li><a href="#mgusr" data-toggle="pill">用户管理</a></li>
 		<li><a href="#mgcs" data-toggle="pill">创建股票</a></li>
-		<li><a href="/admin/futures/future/">期货管理</a></li>
 		<li><a href="#mgtl" data-toggle="pill">其他管理</a></li>
+		<!--<li><a href="#mglog" data-toggle="pill">转帐日志</a></li>-->
 	</ul>
 	<div class="tab-content">
+		<div class="tab-pane fade in" id="mglog">
+			<div class="container">
+		    <div class="form-group col-md-6">
+		    	<select data-label="用户" class="form-control" name="account" id="userSelect2"></select>               
+		    </div>
+		    <ul class="nav nav-pills nav-utinfo inline">
+		    	<li><a href="#mgrclog" data-toggle="pill">转入</a></li>
+		    	<li><a href="#mgtmlog" data-toggle="pill">转出</a></li>
+		    </ul>
+				<div class="tab-content">
+					<div class="tab-pane fade in" id="mgtmlog">
+						<ul class="list-group mese2014-list-group" id="mgtmlogContainer"></ul>
+						<div class="pager">
+							<button class="btn btn-link pull-left" id="mgtmlogPrevBtn">上一页</button>
+							<button class="btn btn-link pull-right" id="mgtmlogNextBtn">下一页</button>
+						</div>
+					</div>
+					<div class="tab-pane fade in" id="mgrclog">
+						<ul class="list-group mese2014-list-group" id="mgrclogContainer"></ul>
+						<div class="pager">
+							<button class="btn btn-link pull-left" id="mgrclogPrevBtn">上一页</button>
+							<button class="btn btn-link pull-right" id="mgrclogNextBtn">下一页</button>
+						</div>
+					</div>	
+				</div>	    
+			</div>
+		</div>
     <div class="tab-pane fade in" id="mgusr">
-      <div class="col-sm-offset-3 col-sm-6">                
+      <div class="col-sm-offset-3 col-sm-6"> 
+      	<div class="container">
+		    <div class="form-group col-md-9">
+		    	<select data-label="用户" class="form-control" name="account" id="userSelect"></select>               
+		    </div>
+		    <div class="form-group col-md-3">
+		    <a href="javascript:void(0);" id="assets">资产</a>
+		    </div>
+		    </div>
 				<form class="mese" id="usrForm" not-clear>
-          <select data-label="用户" name="account" id="userSelect"></select>
-          <input type="text" name="money" data-label="资金" validator="required number min:0">
+          
+          <input type="text" name="money" data-label="资金" validator="required number gt:0">
+           {% if user.username == 'dada' %}
           <input type="submit" value="提交">
+                    {% endif %}
         </form>
+          {% if user.username == 'dada' %}
+      	<div class="form-group">
+      		<div class="col-md-6" style="padding-left:0;">
+      			<input type="submit" class="btn btn-login" value="删除" id="btnDelUser">
+      		</div>
+      		<div class="col-md-6" style="padding-right:0;">
+      			<input type="submit" class="btn btn-login" value="密码初始化为12345" id="btnInitUser">
+      		</div>
+      	</div>
+          {% endif %}
       </div>
     </div>
+    
 		<div class="tab-pane fade in" id="mgcs">
 			<form class="col-sm-offset-3 col-sm-6 mese" id="csForm" action="/api/stocks/">
 				<input type="text" name="owner" data-label="发布者" validator="required maxlength:20">
@@ -66,6 +114,12 @@
 			<div class="panel panel-default panel-mese2014">
 				<div class="panel-body">
 					<a href="/admin/futures/goods/" class="btn btn-xs btn-mese2014 btn-mese2014-success">现货管理</a>
+					<a href="/admin/futures/future/" class="btn btn-xs btn-mese2014 btn-mese2014-success">期货管理</a>
+				{% if user.username == 'dada' %}
+					<a href="/admin/stocks/stock/" class="btn btn-xs btn-mese2014 btn-mese2014-success">股票管理</a>
+					<a href="/admin/funds/fund/" class="btn btn-xs btn-mese2014 btn-mese2014-success">基金管理</a>
+					<a href="/admin/bonds/bond/" class="btn btn-xs btn-mese2014 btn-mese2014-success">债券管理</a>
+				{% endif %}
 				</div>
 			</div>
 			<div class="panel panel-default panel-mese2014">
@@ -105,8 +159,58 @@
 {{block.super}}
 {% if is_self %}
 <script type="text/javascript">
+$("a[href=#mglog]").one('show.bs.tab', function(){
+	var $select = $("#userSelect2");
+	$select.on('change', function(){
+		var selected = $select.find(':selected'), id=$select.val();
+		$(['tm','rc']).each(function(){
+			(function(type){
+				API.list({
+					prev:'mg'+type+'logPrevBtn',
+					next:'mg'+type+'logNextBtn',
+					container:'mg'+type+'logContainer',
+					apiUrl: API.url('transfer').url('logs').url(type==='tm'?'transfer':'receive').param('uid',id),
+					template:'<li class="list-group-item"><a href="{transfer_by.url}">{transfer_by.display_name}</a>转给{transfer_to.display_name} {money} 元.<span class="pull-right">{created_time}</span></li>'
+				});
+			})(this);
+		});
+	});
+	API.url('users').param('fields','id,display_name,account_type').param('limit', 300).get()
+	.ok(function(data){
+		var s = [];
+		$(data.results).each(function(){
+      if (this.username==='superuser'||this.profile.account_type==='media') return;
+      s.push('<option value="{id}">{profile.display_name}</option>'.render(this));		
+		});
+		$(s.join()).appendTo($select);
+	});
+});
 $("a[href=#mgusr]").one('show.bs.tab', function(){
+	var delUser = $("#btnDelUser"), initUser = $("#btnInitUser");
   var select=$("#userSelect"), s=[], $form=$("#usrForm");
+    {% if user.username == 'dada' %}
+  delUser.click(function(){
+  	var sel=select.find(':selected');
+  	delUser.button("loading");
+  	API.url("users").id(select.val()).delete()
+  	.ok(function(){
+  		tips("删除成功！");
+  		delUser.button('reset');
+  		sel.remove();
+  		$form.find('input[name=money]').val();
+  	});
+  });
+  initUser.click(function(){
+  	var sel=select.find(':selected');
+  	delUser.button("loading");
+  	API.url("users").id(select.val()).url("init").post()
+  	.ok(function(){
+  		tips("密码初始化成功！");
+  		delUser.button('reset');
+  		sel.remove();
+  		$form.find('input[name=money]').val();
+  	});
+  });
   $form.initForm({
         callback:function(data){
             tips("修改成功！");
@@ -114,17 +218,22 @@ $("a[href=#mgusr]").one('show.bs.tab', function(){
             $selected.data("assets", $form.find('input[name=money]').val());
         }
     });
+      {% endif %}
   select.on('change',function(){
-      var assets=select.find(':selected').data("assets");
+      var selected = select.find(':selected'), assets=selected.data("assets");
+      if (selected.data('account_type')==='government') {
+      	delUser.addClass('disabled');
+      } else {delUser.removeClass('disabled');}
       $form.attr('action','/api/users/'+select.val()+'/dec/');
       $form.find('input[name=money]').val(assets);
+      $("#assets").attr('href', '/accounts/profile/?uid='+select.val()+'#as');
   });
-  API.url('users').param('limit','300').param('fields', 'display_name,assets').get()
+  API.url('users').param('limit','300').param('fields', 'display_name,assets,account_type').get()
   .ok(function(data){
       $(data.results).each(function(i){
           if (this.username==='superuser'||this.profile.account_type==='media') return;
           this.i=i;
-          s.push('<option value="{id}" data-assets="{profile.assets}">{profile.display_name}</option>'.render(this));
+          s.push('<option value="{id}" data-assets="{profile.assets}" data-account_type="{profile.account_type}">{profile.display_name}</option>'.render(this));
       });
       $(s.join("")).appendTo(select);
       select.trigger('change');

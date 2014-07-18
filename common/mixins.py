@@ -58,8 +58,10 @@ class HasAssetsMixin(get_inc_dec_mixin(['assets'])):
 	
 	assets = DecimalField()
 	
+	def pre_set_assets(self, value):
+		print 'Pre Set', self.display_name, self.assets, value
+	
 	def check_assets(self, assets):
-		print self.assets, assets
 		if self.assets < Decimal(assets):
 			return False
 		

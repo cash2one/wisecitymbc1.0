@@ -9,6 +9,7 @@ from common.exceptions import *
 from decimal import Decimal
 from .permissions import *
 from captcha.decorators import check_captcha
+from django.contrib.auth.models import User
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -41,7 +42,12 @@ class ShareAPIViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
 	
 	def get_queryset(self):
 		bond_pk = self.kwargs.get('bond_pk', None)
-		qs = self.request.user.profile.info.bond_shares.all()
+		user_id = self.request.REQUEST.get('uid', 0)
+		if user_id:
+			user = get_object_or_404(User, pk=user_id)
+		else:
+			user = self.request.user
+		qs = user.profile.info.bond_shares.all()
 		if bond_pk is not None:
 			qs = qs.filter(bond_id = bond_pk)
 			
@@ -51,6 +57,7 @@ class BondAPIViewSet(ModelViewSet):
 
 	model = models.Bond
 	serializer_class = serializers.BondSerializer
+	ordering = ['published', '-created_time']
 	
 	@action(methods = ['GET'], permission_classes = [HasBondObject, OwnBond])
 	def ransom(self, request, *args, **kwargs):

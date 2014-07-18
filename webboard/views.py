@@ -39,7 +39,11 @@ class PassageRetrieveViewSet(BasePassageViewSet, mixins.ListModelMixin, mixins.R
 		
 	def retrieve(self, *args, **kwargs):
 		super(PassageRetrieveViewSet, self).retrieve(*args, **kwargs)
-		response = Response({'object':serializers.PassageSerializer(self.object).data})
+		if hasattr(self, 'object'):
+			data = serializers.PassageSerializer(self.object).data
+		else:
+			data = self.object_data
+		response = Response({'object':data})
 		response.template_name = 'wb/detail.html'
 		return response
 		

@@ -69,11 +69,20 @@
 			</table>		
 		</div>
 	</div>
+	<div class="tab-pane fade in" id="help">
+		<p href="feeds-details-text">
+			<ol>
+				<li>股票申请发出后，当且仅当有价格与之相等的股票申请存在时才可交易。</li>
+				<li>在任一时刻，申请卖出的总股份数不能超过已持有的股份数。</li>
+				<li>当自己的买入申请与卖出申请匹配时，不会进行交易。</li>
+			</ol>
+		</p>
+	</div>
 	<div class="tab-pane fade in" id="op">
 		<div class="col-md-6 col-md-offset-3">
 			<form class="mese" captcha id="opForm">
-				<input id="opPrice" type="text" name="price" data-label="价格" validator="required number min:0">
-				<input id="opShares" type="text" name="shares" data-label="股份数" validator="required number digits min:0">
+				<input id="opPrice" type="text" name="price" data-label="价格" validator="required number gt:0">
+				<input id="opShares" type="text" name="shares" data-label="股份数" validator="required number digits gt:0">
 				<input type="submit" name="sell" value="卖出" action="/api/stocks/{{object.id}}/sell/">
 				<input type="submit" name="buy" value="买入" action="/api/stocks/{{object.id}}/buy/">
 			</form>
@@ -95,6 +104,7 @@
 <ul class="nav nav-pills nav-stacked nav-utinfo">
 	<li><a href="#main" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>行情</a></li>
 	<li><a href="#op" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>操作</a></li>
+	<li><a href="#help" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>说明</a></li>
 </ul>
 {% endblock %}
 {% endblock %}
@@ -147,19 +157,18 @@ $(function(){
       events: { load: function() {
       	var series = this.series[0];
       	setTimeout(function() {
-      	 	API.url('stocks').id(window.uid).url('logs').get().ok(function(data){
+      	 	API.url('stocks').id(window.uid).url('logs').param('limit', '300').get().ok(function(data){
       	 		series.setData(process(data.results), true, true);
       	 	});
-      	 	setTimeout(arguments.callee, 30000);
-      }, 1000); } }
+      	 	setTimeout(arguments.callee,60000);
+      }, 500); } }
     },
     tooltip:{
       backgroundColor:"#F1C200",
       borderRadius:0,
       borderWidth:0,
       formatter: function(){
-      	console.log(this.x);
-        return Highcharts.dateFormat("%m,%e %H:%M",this.x)+" "+this.y;
+        return Highcharts.dateFormat("%m,%e %H:%M",this.x)+" ￥"+this.y;
       }
     },
     title:{
@@ -176,7 +185,10 @@ $(function(){
     },
     xAxis:{
       type:'datetime',
-      tickInterval : 1000*60*5,
+      dateTimeLabelFormats: {
+      	second:'%H:%M:%S'
+      },
+      tickInterval : 1000*60*60*6
     },
     yAxis:{
       title: {

@@ -94,8 +94,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 			return attrs
 		try:
 			share = self.__actor.stock_shares.get(stock = self.__stock)
-			count = self.__actor.stock_applications.filter(command = Application.SELL).aggregate(count = Sum('shares'))['count']
-			print 'cccc',count            
+			count = self.__actor.stock_applications.filter(stock = self.__stock, command = Application.SELL).aggregate(count = Sum('shares'))['count']           
 			if (share.shares - count)< attrs['shares']:
 				raise_error()
 		except Share.DoesNotExist:
@@ -137,7 +136,8 @@ class ApplySerializer(serializers.Serializer):
 			return attrs
 		try:
 			share = self.__actor.stock_shares.get(stock = self.__stock)
-			count = self.__actor.stock_applications.filter(command = Application.SELL).aggregate(count = Sum('shares'))['count'] or 0          
+			count = self.__actor.stock_applications.filter(stock = self.__stock, command = Application.SELL).aggregate(count = Sum('shares'))['count'] or 0          
+			print count
 			if (share.shares - count)< attrs['shares']:
 				raise_error()
 		except Share.DoesNotExist:

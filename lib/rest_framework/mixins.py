@@ -13,7 +13,8 @@ from rest_framework.response import Response
 from rest_framework.request import clone_request
 from rest_framework.settings import api_settings
 import warnings
-
+from django.core.cache import cache
+from common.cache import get_cache_key
 
 def _get_validation_exclusions(obj, pk=None, slug_field=None, lookup_field=None):
     """
@@ -76,6 +77,12 @@ class ListModelMixin(object):
     empty_error = "Empty list and '%(class_name)s.allow_empty' is False."
 
     def list(self, request, *args, **kwargs):
+        cache_key = get_cache_key(self.request)
+        result = cache.get(cache_key)
+        if result is not None:
+            print 'Cache hits:%s'% cache_key
+            return Response(result)
+    
         self.object_list = self.filter_queryset(self.get_queryset())
 
         # Default is to allow empty querysets.  This can be altered by setting
@@ -104,7 +111,9 @@ class ListModelMixin(object):
         else:
             serializer = self.get_serializer(self.object_list, many=True, fields = fields, exclude = exclude)
 
-        return Response(serializer.data)
+        data = serializer.data
+        cache.set(cache_key, data,30)
+        return Response(data)
 
 
 class RetrieveModelMixin(object):
@@ -112,6 +121,13 @@ class RetrieveModelMixin(object):
     Retrieve a model instance.
     """
     def retrieve(self, request, *args, **kwargs):
+        cache_key = get_cache_key(self.request)
+        result = cache.get(cache_key)
+        self.object_data = None
+        if result is not None:
+            print 'Cache hits:%s'% cache_key
+            self.object_data = result
+            return Response(result)    
         self.object = self.get_object()
         fields = request.REQUEST.get('fields','')
         exclude = request.REQUEST.get('exclude', '')
@@ -120,7 +136,9 @@ class RetrieveModelMixin(object):
         if fields:
             fields = fields.split(',')
         serializer = self.get_serializer_class()(self.object, fields = fields, exclude = exclude)
-        return Response(serializer.data)
+        data = serializer.data
+        cache.set(cache_key, data,30)
+        return Response(data)
 
 
 class UpdateModelMixin(object):

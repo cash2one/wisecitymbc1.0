@@ -15,8 +15,6 @@ class FundSerializer(serializers.ModelSerializer):
 
 	def validate_return_rate(self, attrs, source):
 		return_rate = attrs.get(source, 0)
-		#if self.partial and not (attrs['min_return_rate']<=return_rate<=attrs['max_return_rate']):
-		#	raise serializers.ValidationError(u"回报率不得高于基础回报率且不得少于最高回报率。")
 
 		if not return_rate:
 			attrs['return_rate'] = attrs['min_return_rate']

@@ -42,7 +42,12 @@ class ShareAPIViewSet(GenericViewSet, ListModelMixin, RetrieveModelMixin):
 	
 	def get_queryset(self):
 		fund_pk = self.kwargs.get('fund_pk', None)
-		qs = self.request.user.profile.info.fund_shares.all()
+		user_id = self.request.REQUEST.get('uid', 0)
+		if user_id:
+			user = get_object_or_404(auth.models.User, pk=user_id)
+		else:
+			user = self.request.user
+		qs = user.profile.info.fund_shares.all()
 		if fund_pk is not None:
 			qs = qs.filter(fund_id = fund_pk)
 			
@@ -52,6 +57,7 @@ class FundAPIViewSet(ModelViewSet):
 
 	model = models.Fund
 	serializer_class = serializers.FundSerializer
+	ordering = ['published', '-created_time']
 	
 	def create(self, request, *args, **kwargs):
 		return super(FundAPIViewSet, self).create(request, publisher = request.user.profile.info, *args, **kwargs)

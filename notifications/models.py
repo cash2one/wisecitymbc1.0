@@ -87,10 +87,12 @@ class Notification(models.Model):
 	objects = NotificationManager.for_queryset_class(NotificationQuerySet)()
 	
 	class Meta:
-		ordering = ['-created_time']
+		ordering = ['-created_time','-important']
 		
 	def confirm(self):
 		self.confirmed = True
 		self.save()
 		if self.action == self.DELETE and self.target_object is not None:
 			self.target_object.delete()
+		if not self.important:
+			self.delete()
