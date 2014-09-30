@@ -1,0 +1,71 @@
+{% extends "securities/base.html" %}
+{% block title %}基金{% endblock %}
+{% block main %}
+<div class="tab-content">
+	<div class="tab-pane fade in" id="main">
+		<div class="container" id="container">
+		</div>
+		<div class="pager">
+			<button class="btn btn-link pull-left" id="prevBtn">上一页</button>
+			<button class="btn btn-link pull-right" id="nextBtn">下一页</button>
+		</div>
+	</div>
+	<div id="cf" class="tab-pane fade in">
+		<form class="col-sm-offset-3 col-sm-6 mese" input-width="8" id="cfForm" action="/api/funds/">
+			<input type="text" data-label="基金名" name="display_name" validator="required minlength:1 maxlength:20">
+      <select data-label="类型" name="fund_type">
+        <option value="open">开放式</option>
+        <option value="close">封闭式</option>
+      </select>
+			<input type="text" name="min_return_rate" data-label="基本回报率" validator="required number min:0 max:100">
+			<input type="text" data-label="预期回报率" name="max_return_rate" validator="required number min:#min_return_rate max:100">
+			<input type="text" name="initial_money" data-label="初始规模" validator="required number gt:0">
+			<input type="text" class="datetime" data-label="发布时间" name="published_time" validator="required">
+			<input type="text" class="time" data-label="运行时间" name="lasted_time" validator="required">
+			<input type="submit" value="创建基金">
+		</form>
+	</div>
+</div>
+{% endblock %}
+{% block sidebar %}
+{{block.super}}
+<ul class="nav nav-pills nav-stacked nav-utinfo">
+	<li><a href="#main" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>行情</a></li>
+	{% if perms.funds.own_fund %}
+	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>创建基金</a></li>
+	{% endif %}
+</ul>
+{% endblock %}
+{% block extra_script %}
+{% if perms.funds.own_fund %}
+<script type="text/javascript">
+$("a[href=#cf]").one('show.bs.tab', function(){
+  $("#cfForm").initForm({
+    callback: function(data){
+      tips("成功创建基金{display_name}。".render(data));
+    }
+  });
+});
+</script>
+{% endif %}
+<script type="text/javascript">
+$(function(){
+	$("a[href=#main]").tab('show');
+	API.list({
+		apiUrl: API.url("funds"),
+		prev: 'prevBtn',
+		next: 'nextBtn',
+		container: 'container',
+		processData: function(data){
+			if (data.published) {
+				data.state = '已发布'
+			} else data.state = '未发布';
+			if (data.fund_type == 'open') 
+				data.type = '开放式基金'
+			else data.type = '封闭式基金';
+		},
+		template: '<div class="panel panel-default panel-mese2014 col-md-12"><div class="panel-heading"><h4><center><a href="{url}">{display_name}</a>&nbsp;<small>{created_time}&nbsp;{state}&nbsp;{type}</small></center></h4></div><div class="panel-body"><div class="col-md-2"><a href="{publisher.url}">{publisher.display_name}</a></div><div class="col-md-10">{publisher.description}</div></div></div>'
+	});
+});
+</script>
+{% endblock %}

@@ -2,9 +2,24 @@ from common.mixins import *
 from models import Share, Application
 from signals import application_updated
 
-__all__ = ['HasStockMixin']
+__all__ = ['HasStockMixin', 'OwnStockMixin']
+
+class OwnStockMixin(models.Model):
+	
+	permission = 'own_stock'
+	
+	stocks = generic.GenericRelation(
+			'stocks.Stock',
+			content_type_field = 'publisher_type',
+			object_id_field = 'publisher_object_id'
+	)	
+	
+	class Meta:
+		abstract = True
 
 class HasStockMixin(models.Model):
+
+	permission = 'has_stock'
 
 	stock_shares = generic.GenericRelation(
 			'stocks.Share',
@@ -12,11 +27,15 @@ class HasStockMixin(models.Model):
 			object_id_field = 'owner_object_id'
 	)
 	
-	stock_applications = generic.GenericRelation(
+	_stock_applications = generic.GenericRelation(
 			'stocks.Application',
 			content_type_field = 'applicant_type',
 			object_id_field = 'applicant_object_id'
 	)
+	
+	@property
+	def stock_applications(self):
+		return self._stock_applications.filter(shares__gt = 0)
 	
 	def get_stock_share(self, stock, create = False, **kwargs):
 		try:

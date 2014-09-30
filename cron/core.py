@@ -54,7 +54,6 @@ class AppCache(object):
 				self.load_app(app_name, True)
 			if not self.nesting_level:
 				for app_name in self.postponed:
-					print app_name
 					self.load_app(app_name)
 				self.loaded = True
 		finally:
@@ -69,7 +68,6 @@ class AppCache(object):
 
 	def get_crons(self):
 		res = {}
-		print self.get_apps()
 		for app in self.get_apps():
 			for name in dir(app):
 				cron = getattr(app, name)

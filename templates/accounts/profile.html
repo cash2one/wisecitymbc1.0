@@ -1,40 +1,47 @@
 {% extends "index.html" %}
+{% block title %}个人中心{% endblock %}
+{% block extra_head %}
+	<script type="text/javascript">
+	$(function(){
+		window.data = decodeJSON('{{json|safe}}');
+		window.isSelf = "{{is_self}}"==="True"?true:false;
+	});
+	</script>
+{% endblock %}
+
 {% block main_content %}
+{% with info=user_object.profile %}
 <div class="container">
-  <div class="col-md-3 hidden-xs hidden-sm">
-  {% ifequal user.profile.info.account_type "person" %}
-    <div class="panel panel-default utinfo">
-      <div class="panel-body">
-        用户名：{{user.profile.info.display_name}}<br>
-        性别：{{user.profile.info.sex}}<br>
-        所属公司：{{user.profile.info.company.display_name}}<br>
-      </div>
-    </div>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#aa" data-toggle="pill">资产分析</a></li>
-      <li><a href="#pr" data-toggle="pill">个人报告</a></li>
-    </ul>
+  {% ifequal info.account_type "person" %}
+  	{% with reports_field="consumption_reports" reports_title="消费报告" %}
+			{% include "accounts/profile/person.html" %}
+		{% endwith %}
   {% endifequal %}
-  {% ifequal user.profile.info.account_type "company" %}
-    <div class="panel panel-default utinfo">
-      <div class="panel-body">
-        公司名：{{user.profile.info.display_name}}<br>
-        简介：{{user.profile.info.description}}<br>
-        联系方式：{{user.profile.info.contact}}<br>
-      </div>
-    </div>
-    <ul class="nav nav-pills nav-stacked nav-utinfo">
-      <li><a href="#mb" data-toggle="pill"><i class="fa fa-2x fa-users"></i> 成员名单</a></li>
-      <li><a href="#aa" data-toggle="pill"><i class="fa fa-2x fa-bar-chart-o"></i> 资产分析</a></li>
-      <li><a href="#nm" data-toggle="pill"><i class="fa fa-2x fa-pencil"></i>&nbsp;&nbsp;发布新闻</a></li>
-    </ul>
-  </div>
-  <div class="col-md-9 hidden-xs hidden-sm">
-    <div class="tab-content">
-      <div class="tab-pane fade in" id="aa">..</div>
-      <div class="tab-pane fade" id="pr">..</div>
-    </div>
-  </div>
+  {% if info.account_type == "company" or info.account_type == "bank" or info.account_type == "fundcompany" %}
+	  {% with reports_field="financial_reports" reports_title="财务报告"%}
+			{% include "accounts/profile/company.html" %}
+		{% endwith %}
+  {% endif %}
+  {% ifequal info.account_type "media" %}
+  	{% include "accounts/profile/media.html" %}
   {% endifequal %}
+	{% ifequal info.account_type "government" %}
+		{% include "accounts/profile/government.html" %}
+	{% endifequal %}
+	{% ifequal info.account_type "fund" %}
+		{% include "accounts/profile/fund.html" %}
+	{% endifequal %}
 </div>
+{% endwith %}
+{% endblock %}
+
+{% block extra_script %}
+<script type="text/javascript">
+$(function(){
+	var a = $("a[href='"+$.getAnchor()+"']");
+	if (!a.length)
+		a = $("a[data-toggle='pill']").first();
+	a.tab('show');
+});
+</script>
 {% endblock %}

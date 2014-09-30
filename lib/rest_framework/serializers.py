@@ -24,6 +24,7 @@ from rest_framework.compat import get_concrete_model, six
 from rest_framework.settings import api_settings
 from timeline.serializer_fields import FinancialYearField
 import timeline.fields
+import common.fields
 
 
 # Note: We do the following so that users of the framework can use this style:
@@ -216,11 +217,11 @@ class BaseSerializer(WritableField):
         if fields:
             allowed = set(fields)
             for field_name in existing - allowed:
-                self.fields.pop(field_name)
+                self.fields.pop(field_name,None)
         if exclude:
             disallowed = set(exclude)
             for field_name in disallowed & existing:
-                self.fields.pop(field_name)
+                self.fields.pop(field_name,None)
 
         if many and instance is not None and not hasattr(instance, '__iter__'):
             raise ValueError('instance should be a queryset or other iterable with many=True')
@@ -653,6 +654,7 @@ class ModelSerializer(Serializer):
 
     field_mapping = {
         models.AutoField: IntegerField,
+				common.fields.TimeDeltaField: common.fields.TimeDeltaSerializerField,
         models.FloatField: FloatField,
         models.IntegerField: IntegerField,
         models.PositiveIntegerField: IntegerField,

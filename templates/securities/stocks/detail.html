@@ -1,0 +1,222 @@
+{% extends "securities/base.html" %}
+{% block title %}{{object.display_name}}{%endblock%}
+{% block main %}
+<div class="container">
+	<div class="col-md-4">
+		<h3>{{object.display_name}}</h3>
+	</div>
+	<div class="col-md-4">
+		<h3>现价: {{object.current_price}}</h3>
+	</div>
+</div>
+	{% block tab_content %}
+<div class="tab-content">
+	<div class="tab-pane fade in active" id="main">
+		<div class="container">
+			<div class="chart-container col-md-12 hidden-xs" id="stock-chart">
+			</div>
+		</div>
+		<br>
+		<div class="container">
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">最新申请&nbsp;<button class="btn btn-link" id="refreshApplications">刷新</button></div>
+			</div>
+			<table class="table">
+				<thead>
+					<th>出价</th>
+					<th>股份</th>
+					<th>操作</th>
+					<th>时间</th>
+				</thead>
+				<tbody id="applicationsBody">
+				{% for app in applications %}
+					<tr>
+						<th>{{app.price}}</th>
+						<th>{{app.shares}}</th>
+						<th>{%if app.command == 'sell'%}卖出{%else%}买入{%endif%}</th>
+						<th>{{app.created_time}}</th>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<div class="container">
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">我的申请</div>
+			</div>	
+			<table class="table">
+				<thead>
+					<th>出价</th>
+					<th>股份</th>
+					<th>类型</th>
+					<th>时间</th>
+					<th>操作</th>
+				</thead>
+				<tbody id="applicationsBody">
+				{% for app in mys %}
+					<tr>
+						<th>{{app.price}}</th>
+						<th>{{app.shares}}</th>
+						<th>{%if app.command == 'sell'%}卖出{%else%}买入{%endif%}</th>
+						<th>{{app.created_time}}</th>
+						<th>
+							<a class="delApp" data-id="{{app.id}}" href="javascript:void(0);">删除</a>&nbsp;
+							<a href="/stocks/change/?uid={{app.id}}">修改</a>
+						</th>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>		
+		</div>
+	</div>
+	<div class="tab-pane fade in" id="help">
+		<p href="feeds-details-text">
+			<ol>
+				<li>股票申请发出后，当且仅当有价格与之相等的股票申请存在时才可交易。</li>
+				<li>在任一时刻，申请卖出的总股份数不能超过已持有的股份数。</li>
+				<li>当自己的买入申请与卖出申请匹配时，不会进行交易。</li>
+			</ol>
+		</p>
+	</div>
+	<div class="tab-pane fade in" id="op">
+		<div class="col-md-6 col-md-offset-3">
+			<form class="mese" captcha id="opForm">
+				<input id="opPrice" type="text" name="price" data-label="价格" validator="required number gt:0">
+				<input id="opShares" type="text" name="shares" data-label="股份数" validator="required number digits gt:0">
+				<input type="submit" name="sell" value="卖出" action="/api/stocks/{{object.id}}/sell/">
+				<input type="submit" name="buy" value="买入" action="/api/stocks/{{object.id}}/buy/">
+			</form>
+		</div>
+	</div>
+</div>
+	{% endblock %}
+{% endblock %}
+{% block sidebar %}
+<div class="container">
+{% if share %}
+持有份额:{{share.shares}}
+{% else %}
+未持有该股票
+{% endif %}
+</div>
+{{block.super}}
+{% block sidebar_menu %}
+<ul class="nav nav-pills nav-stacked nav-utinfo">
+	<li><a href="#main" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>行情</a></li>
+	<li><a href="#op" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>操作</a></li>
+	<li><a href="#help" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>说明</a></li>
+</ul>
+{% endblock %}
+{% endblock %}
+{% block extra_script %}
+<script type="text/javascript">
+$('a[href="#op"]').one('show.bs.tab', function(){
+	$("#opForm").initForm({
+		callback: {
+			buy: function(data){
+				tips('成功申请购买股票{stock.display_name}。'.render(data));
+			},
+			sell: function(data){
+				tips('成功申请卖出股票{stock.display_name}。'.render(data));
+			},
+		}
+	});
+});
+$(function(){
+	window.uid = {{uid}};
+	$('a[href="#main"]').tab('show');
+	$("a.delApp").on('click', function(){
+		var $this = $(this), $id = $this.attr("data-id");
+		API.url("stocks").url("applications").id($id).delete()
+		.ok(function(){
+			$this.parent().parent().remove();
+		});
+	});
+	function process(data) {
+		for (var i=0;i<data.length;i++) {
+			var obj = data[i];
+			data[i] = {
+				x: new Date(obj.created_time.replace('-',',').replace(' ',',2014 ')),
+				y: parseFloat(obj.price)
+			};
+		}
+		console.log(data);
+		return data.reverse();
+	}
+	Highcharts.setOptions({global:{useUTC:false}});
+  $('#stock-chart').highcharts({
+    chart:{
+      type:'spline',
+      marginRight:10,
+      animation: Highcharts.svg,
+      backgroundColor:"transparent",
+      borderColor:"#CCC",
+      borderRadius:0,
+      borderWidth:1,
+      showAxes:true,
+      events: { load: function() {
+      	var series = this.series[0];
+      	setTimeout(function() {
+      	 	API.url('stocks').id(window.uid).url('logs').param('limit', '300').get().ok(function(data){
+      	 		series.setData(process(data.results), true, true);
+      	 	});
+      	 	setTimeout(arguments.callee,60000);
+      }, 500); } }
+    },
+    tooltip:{
+      backgroundColor:"#F1C200",
+      borderRadius:0,
+      borderWidth:0,
+      formatter: function(){
+        return Highcharts.dateFormat("%m,%e %H:%M",this.x)+" ￥"+this.y;
+      }
+    },
+    title:{
+      text:"走势",
+      align:"left",
+      style:{
+        "color":"#DDD",
+        "fontSize":"14px",
+      }
+    },
+    credits:{
+      href:"detail/1/",
+      text:"",
+    },
+    xAxis:{
+      type:'datetime',
+      dateTimeLabelFormats: {
+      	second:'%H:%M:%S'
+      },
+      tickInterval : 1000*60*60*6
+    },
+    yAxis:{
+      title: {
+        text: '股价'
+      },
+      plotLines:[{
+        value: 0,
+        width: 1,
+        color: '#CCC'
+      }],
+    },
+    legend:{enabled:false},
+    exporting:{enabled:false},
+    series:[{
+      name: '价格'}]
+  })
+	$("#refreshApplications").click(function(){
+		API.url('stocks').id(uid).url('applications').param('limit', 100).get()
+		.ok(function(data){
+			var s = [];
+			$(data.results).each(function(){
+				 this['op'] = this.type==='SELL'?'卖出':'买入';
+				s.push('<tr><th>{price}</th><th>{shares}</th><th>{op}</th><th>{created_time}</th></tr>'.render(this));
+			});
+			$("#applicationsBody").html(s.join(""));
+		});
+	});
+});
+</script>
+<script src="/static/js/highcharts.js"></script>
+{% endblock %}

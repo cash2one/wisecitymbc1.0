@@ -1,0 +1,74 @@
+{% extends "securities/base.html" %}
+{% block title %}债券{% endblock %}
+{% block main %}
+<div class="tab-content">
+	<div id="main" class="tab-pane fade in active">
+		<div class="container">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>名称</th>
+						<th>发布者</th>
+						<th>状态</th>
+					</tr>
+				</thead>
+				<tbody id="container">
+
+				</tbody>
+			</table>
+		</div>
+		<div class="pager">
+			<button class="btn btn-link pull-left" id="prevBtn">上一页</button>
+			<button class="btn btn-link pull-right" id="nextBtn">下一页</button>
+		</div>
+	</div>
+	<div id="cf" class="tab-pane fade in">
+		<form class="col-sm-offset-3 col-sm-6 mese" id="cfForm" input-width="8" action="/api/bonds/">
+			<input type="text" name="display_name" data-label="债券名" validator="required maxlength:20 minlength:1">
+			<input type="text" name="profit_rate" data-label="回报率" validator="required gt:0 number lt:100">
+			<input type="text" name="max_money" data-label="卖出上限" validator="required number gt:0">
+			<input type="text" class="datetime" name="published_time" data-label="发布时间" validator="required">
+			<input type="text" class="time" name="lasted_time" data-label="运行时间" validator="required">
+			<input type="submit" value="创建债券">
+		</form>
+	</div>
+</div>
+{% endblock %}
+{% block sidebar %}
+{{block.super}}
+<ul class="nav nav-pills nav-stacked nav-utinfo">
+	<li class="active"><a href="#main" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>行情</a></li>
+	{% if perms.funds.own_fund %}
+	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-coffee"></i>创建债券</a></li>
+	{% endif %}
+</ul>
+{% endblock %}
+{% block extra_script %}
+{% if perms.funds.own_fund %}
+<script type="text/javascript">
+$("a[href=#cf]").one('show.bs.tab', function(){
+  $("#cfForm").initForm({
+    callback: function(data){
+      tips("成功创建债券{display_name}。".render(data));
+    }
+  })
+});
+</script>
+{% endif %}
+<script type="text/javascript">
+$(function(){
+	API.list({
+		apiUrl: API.url("bonds"),
+		prev: 'prevBtn',
+		next: 'nextBtn',
+		container: 'container',
+		processData: function(data){
+			if (data.published) {
+				data.state = '已发布'
+			} else data.state = '未发布';
+		},
+		template: '<tr><th><a href="{url}">{display_name}</a></th><th><a href="{publisher.url}">{publisher.display_name}</a></th><th>{state}</th></tr>'
+	});
+});
+</script>
+{% endblock %}

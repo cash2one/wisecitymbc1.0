@@ -16,6 +16,11 @@ class Deposit(get_inc_dec_mixin(['money'])):
 	
 	money = DecimalField()
 	
+	class Meta:
+		permissions = (
+			('can_store', 'Can store'),
+		)
+	
 class TransferLog(models.Model):
 
 	transfer_by_content_type = models.ForeignKey(ContentType, related_name='transfer_by')
@@ -31,3 +36,6 @@ class TransferLog(models.Model):
 	
 	class Meta:
 		ordering = ['-created_time']
+		permissions = (
+			('can_transfer', 'Can transfer'),
+		)

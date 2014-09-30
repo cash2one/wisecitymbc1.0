@@ -40,7 +40,7 @@ class Timeline(object):
 	def incr(self, create_on_none = True):
 		self.client.set('set_time', datetime.now())
 		if self.year:
-			self.client.set(self.year+1)
+			self.client.set('year', self.year+1)
 			year = self.year+1
 		else:
 			year=datetime.now().year
@@ -60,7 +60,7 @@ class Timeline(object):
 			if not create_on_none:
 				return None
 			else:
-				year = datetime.now().year
+				year = 2017
 				self.set(year, send = False)
 			
 		delta=datetime.now()-self.client.get('set_time')

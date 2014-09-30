@@ -3,89 +3,79 @@
 <script src="/static/js/highcharts.js"></script>
 <div class="container">
   <div class="col-md-8">
-    <div class="panel panel-default panel-mese2014">
-      <div class="panel-heading">
-        股票版块<a href="details.html" class="pull-right">详细情况</a>
-      </div>
-      <div class="panel-body">
-        <div class="chart-container col-md-7 hidden-xs" id="stock-chart">
-        </div>     
-        <div class="col-md-5">  
-        <table class="table">
-          <thead>
-            <th>名称</th>
-            <th>价格</th>
-            <th></th>
-          </thead>
-          <tbody>
-            <th>ID1</th>
-            <th><i class="fa fa-cny"> l2</i></th>
-            <th><i class="fa fa-caret-down fa-lg"></i></th>
-          </tbody>
-        </table>
-          </div>
-      </div>
-    </div>
-    <div class="col-md-4 hidden-sm hidden-xs" id="sidenav">
-    </div>
+		<div class="panel panel-default panel-mese2014">
+			<div class="panel-heading">
+				<h4>
+					股票<span class="pull-right"><small><a href="/stocks/">更多...</a></small></span>
+				</h4>
+			</div>
+		</div>
+		<table class="table">
+			<tbody id="stockBody">
+			
+			</tbody>
+		</table>	
+		<div class="panel panel-default panel-mese2014">
+			<div class="panel-heading">
+				<h4>
+					基金<span class="pull-right"><small><a href="/funds/">更多...</a></small></span>
+				</h4>
+			</div>
+		</div>
+		<table class="table">
+			<tbody id="fundBody">
+			
+			</tbody>
+		</table>	
+		<div class="panel panel-default panel-mese2014">
+			<div class="panel-heading">
+				<h4>
+					债券<span class="pull-right"><small><a href="/bonds/">更多...</a></small></span>
+				</h4>
+			</div>
+		</div>
+		<table class="table">
+			<tbody id="bondBody">
+			
+			</tbody>
+		</table>	
+	</div>
+  <div class="col-md-4 hidden-sm hidden-xs" id="sidenav">
+  {% include "side_nav.html" %}
   </div>
 </div>
-<script>
-  $(document).ready(function(){Highcharts.setOptions({global:{useUTC:false}})})
-  $('#stock-chart').highcharts({
-    chart:{
-      type:'spline',
-      marginRight:10,
-      animation: Highcharts.svg,
-      backgroundColor:"transparent",
-      borderColor:"#CCC",
-      borderRadius:0,
-      borderWidth:1,
-      showAxes:true,
-      events: { load: function() { // set up the updating of the chart each second 
-      var series = this.series[0]; setInterval(function() { var x = (new Date()).getTime(), // current time 
-      y = Math.random(); series.addPoint([x, y], true, true); }, 1000); } }
-    },
-    tooltip:{
-      backgroundColor:"#F1C200",
-      borderRadius:0,
-      borderWidth:0,
-      formatter: function(){
-        return Highcharts.dateFormat("%e,%b",this.x)+" "+this.y;
-      }
-    },
-    title:{
-      text:"股票名",
-      align:"left",
-      style:{
-        "color":"#DDD",
-        "fontSize":"14px",
-      }
-    },
-    credits:{
-      href:"detail/1/",
-      text:"查看详情",
-    },
-    xAxis:{
-      type:'datetime',
-      tickInterval : 1000*60*5,
-    },
-    yAxis:{
-      title: {
-        text: '股价'
-      },
-      plotLines:[{
-        value: 0,
-        width: 1,
-        color: '#CCC'
-      }],
-    },
-    legend:{enabled:false},
-    exporting:{enabled:false},
-    series:[{
-      name: 'Random data', data: (function() { // generate an array of random data 
-      var data = [], time = (new Date()).getTime(), i; for (i = -19; i <= 0; i++) { data.push({ x: time + i * 1000, y: Math.random() }); } return data; })() 
-    }]
-  })
+<script type="text/javascript">
+$(function(){
+	var arrs = ['stock', 'fund', 'bond'],
+	temps = {
+		stock: '<tr><th><a href="{url}">{display_name}</a></th><th>{current_price}</th></tr>',
+		fund: '<tr><th><a href="{url}">{display_name}</a></th><th>{type}</th><th>{published}</th><th>{return_rate}%</th></tr>',
+		bond: '<tr><th><a href="{url}">{display_name}</a></th><th>{published}</th><th>{return_rate}</th></tr>'
+	},
+	prcs = {
+		stock: function(){},
+		fund: function(data){
+			data['type'] = (data['fund_type'] === 'open'?'开放式基金':'封闭式基金');
+			data['published'] = data['published']?'已发布':'未发布';
+		},
+		bond: function(data){
+			data['published'] = data['published']?'已发布':'未发布';
+		}
+	};
+	for (var i=0;i<arrs.length;i++) {
+		var type = arrs[i];
+		(function(type){
+			API.url(type+'s').get()
+			.ok(function(data){
+				var s = [];
+				$(data.results).each(function(){
+					prcs[type](this);
+					s.push(temps[type].render(this));
+				});
+				$(s.join("")).appendTo($("#"+type+'Body'));
+			});
+		})(type);
+	}
+});
 </script>
 {% endblock %}

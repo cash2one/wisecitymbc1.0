@@ -1,84 +1,82 @@
-<script src="/static/ckeditor/ckeditor.js"></script>
-  <script src="/static/ckeditor/config.js"></script>
-  <script src="/static/js/jquery.ui.widget.js"></script>
-	<script src="/static/js/jquery.iframe-transport.js"></script>
-	<script src="/static/js/jquery.fileupload.js"></script>
-	<link href="/static/css/jquery.fileupload.css" rel="stylesheet">
-  <form id="p_new" role="form">
-    <div class="input-group" style="margin-top:10px;">
-     <span class="input-group-addon">标题</span>
-    <input class="form-control" type="text" id="title" name="title"></input>
-    </div>
-  <div class="input-group col-md-12" style="padding:0;margin-top:10px">
-    <textarea class = "form-control col-md-12" rows="30" cols="50" id="content" name="content"></textarea>
+<script src="//mese2014.sinaapp.com/static/ckeditor/ckeditor.js" defer></script>
+<form id="p_new" role="form">
+  <div class="input-group" style="margin-top:10px;">
+      <span class="input-group-addon" style="color:black;">标题</span>
+  <input class="form-control" type="text" id="title" name="title">
   </div>
-  <div id="attachments" class="hidden">
-  
-  </div>
-  <div class="input-group col-md-12">
-  <input class="btn btn-mese2014" type="submit" value="提交"/>
-  <a class="btn btn-mese2014">取消</a>
-  </div>
-  </form>
-    <form id="uploadForm" role="form">
-		<div class="fileinput-button btn">
-  		<span>添加附件...</span>
-  		<input type="file" name="file" id="file" />
-		</div>
-		<ul id="list" class="list-group">
-    
-		</ul>
-  </form>
-  <script type="text/javascript">
-    CKEDITOR.replace('content',{
-    upload:{
-      formId:'uploadForm', 
-		 fileId:'file', 
-		 queueId: 'list',  
-		 callback:function(data){
-			 $("#list").append('<input type="text" name="attachments" value="{id}"></input>'.render(data));
-		 },
-		 progress:function(data){
-		 	console.log(data);
-		 }
-	}})
+<div class="input-group col-md-12" style="padding:0;margin-top:10px">
+  <textarea class = "form-control col-md-12" rows="30" cols="50" id="content" name="content">{{object.content}}</textarea>
+</div>
+<div id="attachments" class="hidden">
+
+</div>
+<div class="form-group col-md-12" style="margin:0;">
+	<input class="btn btn-mese2014 pull-right btn-mese2014-success" type="submit" value="提交"/>
+</div>
+</form>
+<form id="uploadForm" role="form" class="inline">
+	<div class="fileinput-button btn btn-mese2014 btn-mese2014-success">
+		<span>添加附件...</span>
+		<input type="file" name="file" id="file" />
+	</div>&nbsp;<span id="pspro" class="hidden">进度：<span class="inline" style="font-size:20px;" id="psnum"></span>%</span>
+</form>
+<br>
+	<ul id="list" class="mese2014-list-group">
+
+	</ul>
+<script type="text/javascript">
 	$(function(){
-		var editor = CKEDITOR.instances['content'];
+		var accountType = "{{user.profile.info.account_type}}", $psnum = $("#psnum");
+		CKEDITOR.replace('content'), $submit = $("#p_new input[type=submit]");
+		function insertAttachment(data) {
+				var  
+				insertion=/^.+\.(jpg|gif|png)$/i.test(data.name)?"<br><img src='{url}' style='max-width:100%;'></img>":"<br><a href='{url}'>{name}</a>"; 
+				insertion = insertion.render(data);
+				data.insertion=insertion;
+				$('<li class="list-group-item"><a href="javascript:void(0);" class="main">{name}</a><a href="javascript:void(0);" class="pull-right del">删除</a></li>'.render(data)).data(data).appendTo($("#list"));
+				$('<input type="text" value="{id}" name="attachments">'.render(data)).appendTo($("#attachments"));		
+				return insertion;
+		};
+		if (window.objectId) 
+			API.url('passages').id(objectId).param('fields','attachments').get()
+			.ok(function(data){
+				$(data.attachments).each(function () {insertAttachment(this);});
+			});
+		window.submit||(window.submit = function (data) {
+		return API.url("passages").post(data);
+		});
+		window.editor = CKEDITOR.instances['content'];
 		$("#list").delegate('a.main', 'click', function(){
 				var data = $(this).parent().data();
 				editor.insertHtml(data.insertion);
-			});
-		$("#list").delegate('a.del', 'click', function(){
+			})
+		.delegate('a.del', 'click', function(){
 				var data = $(this).parent().data();
 				API.url('files').url('public').id(data.id).delete();
 				$(this).parent().remove();
 			});
 		$("#uploadForm").fileupload({
 			url: "/api/files/public/",
+			iframe: true,
 			autoUpload: true,
 			dataType: 'json',
 			formAcceptCharset: "unicode",
 			done: function (e, xhr) {
-				var data = xhr.result, 
-				insertion=/^.+\.(jpg|gif|png)$/i.test(data.name)?"<br><img src='{url}' style='max-width:100%;'></img>":"<br><a href='{url}'>{name}</a>"; 
-				insertion = insertion.replace('{url}', data.url).replace('{name}', data.name);
-				editor.insertHtml(insertion);
-				data.insertion=insertion;
-				$('<li class="list-group-item"><a href="javascript:void(0);" class="main">{name}</a><a href="javascript:void(0);" class="pull-right del">删除</a></li>'.render(data)).data(data).appendTo($("#list"));
-				$('<input type="text" value="{id}" name="attachments">'.render(data)).appendTo($("#attachments"));
+				editor.insertHtml(insertAttachment(xhr.result));
+			},
+			change: function(){
+				$("#pspro").removeClass('hidden');
 			},
 			progressall: function(e, data) {
 				var p=parseInt(data.loaded / data.total * 100, 10);
-				console.log(p);
+				$psnum.text(p);
+				if (p===100) $("#pspro").addClass('hidden');
 			}
-		});
-		$("#file").change(function(){
-			$("#uploadForm").fileupload("send");
 		});
 		$("#p_new").submit(function(e){
 			e.preventDefault();
 			var data = $(this).serializeObject();
-			data.content = CKEDITOR.instances['content'].getData();
+			data.content = editor.getData();
 			if (data.attachments&&typeof data.attachments === 'string') {
 				data.attachments = [data.attachments];
 			}
@@ -87,17 +85,18 @@
 				!data.content&&$("#content").error();
 				return false;
 			}
-			console.log(data);
-			//return false;
-			API.url("passages").post(data).
-			ok(function(data){
-				console.log('ok');
-				window.location.href = data.url;
-				// If success, do something
+			$submit.button("loading");
+			window.submit(data).
+			ok(function(data){	
+				var url = data.url, loc = location.href;
+				if (['company', 'fundcompany', 'bank'].indexOf(accountType)>=0) url = '/accounts/profile/#pl';
+				location.href = url;
+				if (url!==data.url&&loc.indexOf('accounts')>=0) location.reload();
+				$submit.button("reset");
 			})
 			.paramError(function(data){
 				console.log(data);
-				// If error, do something
+				$submit.button("reset");
 			});
 			return false;
 		});

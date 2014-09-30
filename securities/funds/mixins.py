@@ -1,12 +1,13 @@
 #encoding=utf8
 from common.mixins import *
-from models import Share
-from notifications import send_notification
+from models import Share, RansomApplication, dispatcher
 from django.core.exceptions import ValidationError
 
 __all__ = ['OwnFundMixin', 'HasFundMixin']
 
 class HasFundMixin(models.Model):
+	
+	permission = 'has_fund'
 	
 	fund_shares = generic.GenericRelation(
 			'funds.Share',
@@ -14,15 +15,17 @@ class HasFundMixin(models.Model):
 			object_id_field = 'owner_object_id',
 	)
 
-	def ransom(self, fund, money):
-		try:
-			share = self.shares.get(fund = fund)
-		except Share.DoesNotExist:
-			raise ValidationError("You have no shares of this fund!")
-		if share.money < money:
-			raise ValidationError("There is not enough money in your fund!")
-			
-		send_notification(recipient = fund.account)
+	def ransom_fund_share(self, fund, money):
+		application = RansomApplication(
+				fund = fund,
+				money = money,
+				owner = self
+		)
+		application.save()
+		dispatcher.send('ransom', {
+				'actor': self,
+				'money': money,
+		}, recipient = fund.account.profile.user, action = 'delete', important = True)
 
 	def get_fund_share(self, fund, create = False, **kwargs):
 		try:
@@ -32,9 +35,6 @@ class HasFundMixin(models.Model):
 				return Share(owner = self, fund = fund, **kwargs)
 	
 	def buy_fund(self, fund, money):
-		assert fund.can_buy()
-		print money
-		self.check_assets(money)
 		fund.apply_money(self, money)
 		self.dec_assets(money)
 		
@@ -43,10 +43,12 @@ class HasFundMixin(models.Model):
 
 class OwnFundMixin(models.Model):
 	
+	permission = 'own_fund'
+	
 	funds = generic.GenericRelation(
 			'funds.Fund',
-			content_type_field = 'owner_type',
-			object_id_field = 'owner_object_id'
+			content_type_field = 'publisher_type',
+			object_id_field = 'publisher_object_id'
 	)	
 	
 	class Meta:

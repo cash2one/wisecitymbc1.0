@@ -1,0 +1,32 @@
+{% extends "securities/stocks/detail.html" %}
+{% block title %}修改申请{% endblock %}
+{% block tab_content %}
+<div class="col-md-6 col-md-offset-3">
+	<form role="form" id="opForm" class="mese" action="/api/stocks/applications/{{uid}}/" method="patch">
+		<input type="text" name="price" value="{{application.price}}" data-label="价格" validator="required number gt:0">
+		<input id="opShares" type="text" name="shares" value="{{application.shares}}" data-label="股份数" validator="required number digits gt:0">
+		<div class="form-group">
+		<label class="col-sm-3 control-label" for="opType">类型</label>
+			<div class="input-group col-sm-9">
+				<span id="opType">{% if application.type == "SELL" %}卖出{% else %}买入{% endif %}</span>
+			</div>
+		</div>
+		<input type="submit" class="btn btn-login" value="提交">
+	</form>
+</div>
+{% endblock %}
+
+{% block sidebar_menu %}
+
+{% endblock %}
+{% block extra_script %}
+<script type="text/javascript">
+$(function(){
+	var $form = $("#opForm").initForm({
+		callback: function(){
+			window.location.href = "{{object.url}}";
+		}
+	});
+});
+</script>
+{% endblock %}

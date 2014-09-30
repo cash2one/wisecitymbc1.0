@@ -150,9 +150,12 @@ INSTALLED_APPS = (
 		'notifications',
 		'transfer',
 		'cron',
+		'info',
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+#SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+CACHE_TIMEOUT = 300
 
 SAE_DEFAULT_STORAGE_DOMAIN_NAME = 'mese2014storage'
 SAE_FILE_STORAGE_DOMAIN_NAME = 'mese2014file'
@@ -204,14 +207,14 @@ REST_FRAMEWORK = {
     # Only used if the `serializer_class` attribute is not set on a view.
 	'PAGINATE_BY': 10, 
 	'PAGINATE_BY_PARAM': 'limit',  # Allow client to override, using `?page_size=xxx`.
-    'MAX_PAGINATE_BY': 50, 
+    'MAX_PAGINATE_BY': 250, 
     'DEFAULT_MODEL_SERIALIZER_CLASS':
         'rest_framework.serializers.HyperlinkedModelSerializer',
 
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated'
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
     ],
 	'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
@@ -220,6 +223,7 @@ REST_FRAMEWORK = {
 		'rest_framework.parsers.JSONParser',
 		'rest_framework.parsers.FormParser',
 	),
-	'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+	'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend','rest_framework.filters.OrderingFilter'),
 	'DATETIME_FORMAT': '%m-%d %H:%M:%S',
+	'EXCEPTION_HANDLER': 'common.exceptions.handle_403_exception'
 }

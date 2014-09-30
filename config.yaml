@@ -7,4 +7,4 @@ libraries:
 cron:
 - description: main_cron
   url: /cron/
-  schedule: "*/1 8-0 * 7 *"
+  schedule: "*/1 8-0 * * *"

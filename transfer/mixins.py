@@ -2,11 +2,15 @@
 from .models import TransferLog, Deposit
 from common.mixins import *
 from decimal import Decimal
-from notifications import send_notification
+from notifications import Dispatcher
 
 __all__ = ['CanStoreMixin', 'CanTransferMixin']
 
+dispatcher = Dispatcher(u'${from}转帐了￥${money}给你。')
+
 class CanStoreMixin(models.Model):
+	
+	permission = 'can_store'
 	
 	deposits = generic.GenericRelation(
 			'transfer.Deposit',
@@ -15,7 +19,6 @@ class CanStoreMixin(models.Model):
 	)
 	
 	def store_money(self, bank, money):
-		self.check_assets(money)
 		self.dec_assets(money)
 		bank.inc_assets(money)
 		try:
@@ -32,7 +35,6 @@ class CanStoreMixin(models.Model):
 	def remove_money(self, bank, money):
 		try:
 			deposit = self.deposits.get(bank = bank)
-			assert deposit.money >= money
 			deposit.dec_money(money)
 			self.inc_assets(money)
 			bank.dec_assets(money)
@@ -45,13 +47,34 @@ class CanStoreMixin(models.Model):
 		
 class CanTransferMixin(models.Model):
 	
+	permission = 'can_transfer'
+	
+	transfer_logs = generic.GenericRelation(
+			'transfer.TransferLog',
+			content_type_field = 'transfer_by_content_type',
+			object_id_field = 'transfer_by_object_id',
+			related_name = 'transfer_by_%(class)s',
+	)	
+	
+	receive_logs = generic.GenericRelation(
+			'transfer.TransferLog',
+			content_type_field = 'transfer_to_content_type',
+			object_id_field = 'transfer_to_object_id',
+	)	
+	
 	def transfer_money(self, transfer_to, money):
 		money = Decimal(money)
-		dec_money = money * Decimal(1.0001)
-		self.check_assets(dec_money)
+		dec_money = money * Decimal(1.001)
 		self.dec_assets(dec_money)
 		transfer_to.inc_assets(money)
-		send_notification(recipient = transfer_to.profile.user, actor = self, verb = u'转帐给了', target = u'你')
+		dispatcher.send(
+			'_',
+			recipient = transfer_to.profile.user,
+			args = {
+				'money': money,
+				'from': self
+			}
+		)
 		return TransferLog.objects.create(
 				transfer_to = transfer_to,
 				transfer_by = self,

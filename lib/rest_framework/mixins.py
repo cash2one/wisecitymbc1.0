@@ -13,7 +13,8 @@ from rest_framework.response import Response
 from rest_framework.request import clone_request
 from rest_framework.settings import api_settings
 import warnings
-
+from django.core.cache import cache
+from common.cache import get_cache_key
 
 def _get_validation_exclusions(obj, pk=None, slug_field=None, lookup_field=None):
     """
@@ -49,6 +50,7 @@ class CreateModelMixin(object):
     def create(self, request, *args, **kwargs):
         data = dict(request.DATA)
         data.update(**kwargs)
+        print data
         serializer = self.get_serializer(data=data, files=request.FILES)
 
         if serializer.is_valid():
@@ -75,6 +77,12 @@ class ListModelMixin(object):
     empty_error = "Empty list and '%(class_name)s.allow_empty' is False."
 
     def list(self, request, *args, **kwargs):
+        cache_key = get_cache_key(self.request)
+        result = cache.get(cache_key)
+        if result is not None:
+            print 'Cache hits:%s'% cache_key
+            return Response(result)
+    
         self.object_list = self.filter_queryset(self.get_queryset())
 
         # Default is to allow empty querysets.  This can be altered by setting
@@ -91,13 +99,21 @@ class ListModelMixin(object):
             raise Http404(error_msg)
 
         # Switch between paginated or standard style responses
+        fields = request.REQUEST.get('fields')
+        if fields:
+            fields = fields.split(',')
+        exclude = request.REQUEST.get('exclude', '')
+        if exclude:
+            exclude = exclude.split(',')            
         page = self.paginate_queryset(self.object_list)
         if page is not None:
-            serializer = self.get_pagination_serializer(page)
+            serializer = self.get_pagination_serializer(page, fields, exclude = exclude)
         else:
-            serializer = self.get_serializer(self.object_list, many=True)
+            serializer = self.get_serializer(self.object_list, many=True, fields = fields, exclude = exclude)
 
-        return Response(serializer.data)
+        data = serializer.data
+        cache.set(cache_key, data,30)
+        return Response(data)
 
 
 class RetrieveModelMixin(object):
@@ -105,9 +121,24 @@ class RetrieveModelMixin(object):
     Retrieve a model instance.
     """
     def retrieve(self, request, *args, **kwargs):
+        cache_key = get_cache_key(self.request)
+        result = cache.get(cache_key)
+        self.object_data = None
+        if result is not None:
+            print 'Cache hits:%s'% cache_key
+            self.object_data = result
+            return Response(result)    
         self.object = self.get_object()
-        serializer = self.get_serializer(self.object)
-        return Response(serializer.data)
+        fields = request.REQUEST.get('fields','')
+        exclude = request.REQUEST.get('exclude', '')
+        if exclude:
+            exclude = exclude.split(',')
+        if fields:
+            fields = fields.split(',')
+        serializer = self.get_serializer_class()(self.object, fields = fields, exclude = exclude)
+        data = serializer.data
+        cache.set(cache_key, data,30)
+        return Response(data)
 
 
 class UpdateModelMixin(object):

@@ -1,0 +1,99 @@
+{% extends "securities/base.html" %}
+{% block title %}{{object.display_name}}{% endblock %}
+{% block main %}
+<div class="container">
+	<div class="col-md-3">
+		<h4>{{object.display_name}}{% if object.published %}&nbsp;<small>已发布</small>{% endif %}</h4>
+	</div>
+	<div class="col-md-3">
+		<h4>基本利率：{{object.profit_rate}}%</h4>
+	</div>
+	<div class="col-md-3">
+		<h4>已售出：￥{{object.total_money}}</h4>	
+	</div>
+	<div class="col-md-3">
+		<h4>发布者：<a href="{{object.publisher.url}}">{{object.publisher.display_name}}</a></h4>
+	</div>
+</div>
+<div class="container">
+	<div class="panel panel-default panel-mese2014">
+		<div class="panel-heading">基本信息</div>
+	</div>
+	<table class="table">
+		<thead>
+			<th>发布时间</th>
+			<th>还本期限</th>
+			<th>卖出上限</th>
+		</thead>
+		<tbody>
+			<tr>
+				<th>{{object.published_time}}</th>
+				<th>{{object.lasted_time}}</th>
+				<th>Y{{object.max_money}}</th>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div class="tab-content">
+	{% if not object.published and not is_self and perms.bonds.has_bond %}
+	<div class="tab-pane fade in" id="buy">
+		<div class="col-md-6 col-md-offset-3">
+			<form id="buyForm" class="mese" action="/api/bonds/{{object.id}}/buy/" captcha>
+				<input type="text" name="money" data-label="资金" validator="required number gt:0">
+				<input type="submit" value="确认">
+			</form>
+		</div>
+	</div>
+	{% endif %}
+	{% if is_self %}
+	<div class="tab-pane fade in" id="config">
+		<div class="col-md-6 col-md-offset-3">
+			<form role="form" id="cfgForm" class="mese" captcha method="patch" action="/api/bonds/{{object.id}}/">
+				<input type="text" name="profit_rate" data-label="回报率" value="{{object.profit_rate}}" validator="required number gt:0 lt:100">
+				<input type="text" name="max_money" data-label="卖出上限" validator="required number gt:0">
+				<input type="submit" value="确认">
+			</form>
+		</div>		
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+{% block sidebar %}
+<div class="container">
+{% if share %}
+投入资金:￥{{share.money}}
+{% else %}
+未购买该债券
+{% endif %}
+</div>
+{{block.super}}
+<ul class="nav nav-pills nav-stacked nav-utinfo">
+{% if not object.published and not is_self and perms.bonds.has_bond %}
+	<li><a href="#buy" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请购买</a></li>
+{% endif %}
+{% if is_self %}
+	<li><a href="#config" data-toggle="pill"><i class="fa fa-2x fa-tool"></i>设置</a></li>
+{% endif %}
+</ul>
+{% endblock %}
+{% block extra_script %}
+<script type="text/javascript">
+$(function(){
+	window.uid = {{object.id}};
+	window.api = API.url("bonds").id(window.uid);
+});
+function jump(){
+	window.location.href="?uid="+window.uid;
+}
+$("a[href='#config']").one('show.bs.tab', function(){
+  $("#cfgForm").initForm({
+    callback: jump
+  });
+});
+$("a[href='#buy']").one('show.bs.tab', function(){
+  $("#buyForm").initForm({
+    callback: jump
+  });
+});
+</script>
+{% endblock %}

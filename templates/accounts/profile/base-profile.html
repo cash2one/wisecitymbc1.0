@@ -1,0 +1,439 @@
+<div class="col-md-3">
+	{% block sidebar %}
+	{% if info.account_type != 'media' %}
+	<li><a href="#as" data-toggle="pill"><i class="fa fa-2x fa-bar-chart-o"></i> 资产分析</a></li>
+	{% endif %}
+	{% if permissions.can_transfer and is_self %}
+	<li><a href="#tm" data-toggle="pill"><i class="fa fa-2x fa-money"></i> 转帐 </a></li>
+	{% endif %}
+	{% if permissions.has_report %}
+	<li><a href="#pr" data-toggle="pill"><i class="fa fa-2x fa-file-archive-o"></i> {{reports_title}}</a></li>
+	{% endif %}
+	{% if info.account_type == 'person' %}
+	<li><a href="#dp" data-toggle="pill"><i class="fa fa-2x fa-file-archive-o"></i> 债务报告</a></li>
+	{% endif %}
+	{% if permissions.publish_passage %}
+	<li><a href="#pl" data-toggle="pill"><i class="fa fa-2x fa-file-text-o"></i> 新闻 </a></li>
+	{% endif %}
+	{% if is_self %}
+	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-wrench"></i> 设置 </a></li>
+	{% endif %}
+	{% if is_self %}
+	<li><a href="#no" data-toggle="pill"><i class="fa fa-2x fa-envelope-o"></i> 消息 </a></li>
+	{% endif %}
+	{% endblock %}
+</div>
+<div class="col-md-9" style="margin-top:50px">
+  <div class="tab-content">
+{% block tabs %}
+	<div class="tab-pane fade in" id="no">
+		<ul class="nav nav-pills nav-utinfo" id="cful">
+			<li><a href="#noread" data-toggle="pill">已读</a></li>
+			<li><a href="#nounread" data-toggle="pill">未读</a></li>
+		</ul>		
+		<div class="tab-content">
+			<div class="tab-pane fade in" id="noread">
+				<ul class="list-group mese2014-list-group" id="noreadContainer"></ul>
+				<div class="pager">
+					<button class="btn btn-link pull-left" id="noreadPrevBtn">上一页</button>
+					<button class="btn btn-link pull-right" id="noreadNextBtn">下一页</button>
+				</div>
+			</div>
+			<div class="tab-pane fade in" id="nounread">
+				<ul class="list-group mese2014-list-group" id="nounreadContainer"></ul>
+				<div class="pager">
+					<button class="btn btn-link pull-left" id="nounreadPrevBtn">上一页</button>
+					<button class="btn btn-link pull-right" id="nounreadNextBtn">下一页</button>
+				</div>			
+			</div>
+		</div>
+	</div>
+	{% if info.account_type == 'person' %}
+	<div class="tab-pane fade in" id="dp">
+	{% if is_self %}
+		<form id="debtReportsUploadForm">
+			<div class="fileinput-button btn btn-mese2014-success">
+				<span>添加文件...</span>
+				<input type="file" name="file">
+			</div>
+			&nbsp;<span id="dppro" class="hidden">进度：<span class="inline" style="font-size:20px;" id="dpnum"></span>%</span>
+		</form>
+	{% endif %}
+		<br>
+		<ul id="debtReportsFilesList" class="list-group mese2014-list-group"></ul>
+	</div>
+	{% endif %}
+	{% if is_self %}
+	<div class="tab-pane fade in" id="cf">
+		<ul class="nav nav-pills nav-utinfo" id="cful">
+			<li><a href="#cfinfo" data-toggle="pill">信息</a></li>
+			<li><a href="#cfpsw" data-toggle="pill">密码</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane fade in" id="cfpsw">
+				<form id="setpswForm" class="mese col-md-offset-3 col-md-6" action="/api/users/my/set_password/" captcha>
+					<input type="password" name="old_password" data-label="旧密码" validator="required">
+					<input type="password" name="new_password" data-label="新密码" id="newPassword" validator="required">
+					<input type="password" name="repeat_new_password" data-label="重复密码" validator="required equalTo:#newPassword">			
+					<input type="submit" value="修改">
+				</form>
+			</div>
+			<div class="tab-pane fade in" id="cfinfo">
+				<form id="configForm" action="/api/users/my/profile/" method="patch" class="mese col-md-offset-3 col-md-6" not-clear>
+					{% block config_form %}
+					{% endblock %}
+					<input type="submit" value="修改">
+				</form>	
+			</div>
+		</div>
+	</div>
+	{% endif %}
+
+	{% if info.account_type != 'media' %}
+	<div class="tab-pane fade in" id="as">
+		<div class="container">
+			<h3>资金： {{info.assets}}</h3>
+		</div>
+		{%if is_self or user.profile.info.account_type == 'government' %}
+			{% if permissions.can_store %}
+			<h4>银行存款</h4>
+			<table class="table">
+				<thead>
+					<tr>
+						<th style="width:30%">银行名称</th>
+						<th>存款</th>
+					</tr>
+				</thead>
+				<tbody id="bankBody">
+				
+				</div>
+			</table>
+			{% endif %}
+			{% if permissions.has_stock %}
+			<h4>持有股票</h4>
+			<table class="table">
+				<thead>
+					<tr>
+						<th style="width:30%">名称</th>
+						<th style="width:30%">现价</th>
+						<th>股份</th>
+					</tr>
+				</thead>
+				<tbody id="stockBody">
+				</tbody>
+			</table>
+			{% endif %}
+			{% if permissions.has_bond %}
+			<h4>持有债券</h4>
+			<table class="table">
+				<thead>
+					<tr>
+						<th style="width:30%">名称</th>
+						<th>投入资金</th>
+					</tr>
+				</thead>
+				<tbody id="bondBody">
+				</tbody>
+			</table>
+			{% endif %}
+			{% if permissions.has_fund %}
+			<h4>持有基金</h4>
+			<table class="table">
+				<thead>
+					<tr>
+						<th style="width:30%">名称</th>
+						<th>投入资金</th>
+					</tr>
+				</thead>
+				<tbody id="fundBody"> 
+				</tbody>
+			</table>
+			{% endif %}
+		{% endif%}
+	</div>
+	{% endif %}
+	{% if permissions.can_transfer and is_self %}
+	<div class="tab-pane fade in" id="tm">
+		<ul class="nav nav-pills nav-utinfo">
+			{% if is_self %}
+			<li><a href="#tmop" data-toggle="pill">操作</a></li>
+			{% endif %}
+			<li><a href="#tmlog" data-toggle="pill">转帐记录</a></li>
+			<li><a href="#rclog" data-toggle="pill">转入记录</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane fade in" id="tmlog">
+				<ul class="list-group mese2014-list-group" id="tmlogsContainer">
+				<div class="pager">
+					<button class="btn btn-link pull-left" id="tmlogPrevBtn">上一页</button>
+					<button class="btn btn-link pull-right" id="tmlogNextBtn">下一页</button>
+				</div>
+			</div>
+			<div class="tab-pane fade in" id="rclog">
+				<ul class="list-group mese2014-list-group" id="rclogsContainer">
+				<div class="pager">
+					<button class="btn btn-link pull-left" id="rclogPrevBtn">上一页</button>
+					<button class="btn btn-link pull-right" id="rclogNextBtn">下一页</button>
+				</div>
+			</div>
+			{% if is_self %}
+			<div class="tab-pane fade in" id="tmop">
+				<h4>
+					转帐规则：每转帐一次需从账户中扣除千分之一的手续费。
+				</h4>
+				<form id="transferForm"class="mese col-md-offset-3 col-md-6" action="/api/transfer/">
+							<input type="text" name="money" data-label="转账金额" validator="required gt:0 number">
+							<input type="text" name="to" data-label="转账对象" validator="required">
+							<input type="submit" value="开始转帐">
+				</form>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	{% endif %}
+	{% if permissions.publish_passage %}
+		<div class="tab-pane fade in" id="pl">
+			<div class="container" id="feedsContainer"></div>
+			<div class="pager">
+				<button id="feedsPrevBtn" class="btn btn-link pull-left">上一页</button>
+				<button id="feedsNextBtn" class="btn btn-link pull-right">下一页</button>
+			</div>
+		</div>
+	{% endif %}
+	{% if permissions.has_report %}
+		<div class="tab-pane fade in" id="pr">
+		{% if is_self %}
+			{% include "upload_cdn.html" %}
+			<form id="reportsUploadForm">
+				<div class="fileinput-button btn btn-mese2014-success">
+					<span>添加文件...</span>
+					<input type="file" name="file">
+				</div>
+				&nbsp;<span id="prpro" class="hidden">进度：<span class="inline" style="font-size:20px;" id="prnum"></span>%</span>
+			</form>
+		{% endif %}
+			<br>
+			<ul id="reportsFilesList" class="list-group mese2014-list-group"></ul>
+		</div>
+	{% endif %}
+{% endblock %}
+  </div>
+</div>
+{% block extra_script %}
+<script type="text/javascript">
+$("a[href='#no']").one('show.bs.tab', function(){
+	$("a[href='#nounread']").tab('show');
+});
+$(['read','unread']).each(function(){
+	var type = this;
+	(function(type){
+		$("a[href=#no"+type+"]").on('show.bs.tab', function(){
+			var api = API.url('notifications').param('now','');
+			(type==String('unread'))?(api = api.param('unread','True')):(api = api.param('unread','False'));
+			var template = '<li class="list-group-item">{message} <span class="pull-right">{link} {created_time}</span></li>';
+			API.list({
+				apiUrl: api,
+				container: 'no'+type+'Container',
+				next: 'no'+type+'NextBtn',
+				prev: 'no'+type+'PrevBtn',
+				processData: function(data){
+					data.link = (data.url?'<a href="{url}">详情</a>'.render(data):'');
+				},
+				template: template
+			});
+		});
+	})(type);
+});
+</script>
+{% if info.account_type != 'media' or user.profile.info.account_type == 'government' %}
+<script type="text/javascript">
+$('a[href="#as"]').one('show.bs.tab',function(){
+	var collections = {'fund':'基金','stock':'股票', 'bond':'债券', 'bank': '存款'};
+	var templates = {
+		'fund': '<tr><th><a href="{fund.url}">{fund.display_name}</a></th><th>{money}</th></tr>',
+		'stock': '<tr><th><a href="{stock.url}">{stock.display_name}</a></th><th>{stock.current_price}</th><th>{shares}</th></tr>',
+		'bond': '<tr><th><a href="{bond.url}">{bond.display_name}</th><th>{money}</a></th></tr>',
+		'bank': '<tr><th><a href="{bank.url}">{bank.display_name}</th><th>{money}</a></th></tr>'
+	};
+	for (var type in collections) {
+		var body = $("#"+type+"Body"),temp = templates[type];
+		if (!body.length) continue;
+		(function(body, temp, type){
+		(type==='bank'?API.url('banks').url('deposits'):API.url(type+'s').url('shares').param('uid','{{user_object.id}}').param("limit", 100)).get()
+		.ok(function(data) {
+			var s=[];
+			$(data.results).each(function(){
+				s.push(temp.render(this));
+			});
+			$(s.join("")).appendTo(body);
+		});
+		})(body, temp, type);
+	}
+});
+</script>
+{% endif %}
+
+{% if permissions.can_transfer and is_self%}
+<script type="text/javascript">
+$("a[href='#tmlog']").on('show.bs.tab', function(){
+	API.list({
+		prev: 'tmlogPrevBtn',
+		next: 'tmlogNextBtn',
+		apiUrl: API.url('transfer').url('logs').url('transfer'),
+		container: 'tmlogsContainer',
+		template: '<li class="list-group-item">转给 <a href="{transfer_to.url}">{transfer_to.display_name}</a> {money} 元.<span class="pull-right">{created_time}</span></li>'
+	});
+});
+$("a[href='#rclog']").on('show.bs.tab', function(){
+	API.list({
+		prev: 'rclogPrevBtn',
+		next: 'rclogNextBtn',
+		apiUrl: API.url('transfer').url('logs').url('receive'),
+		container: 'rclogsContainer',
+		template: '<li class="list-group-item"><a href="{transfer_by.url}">{transfer_by.display_name}</a>转给你 {money} 元.<span class="pull-right">{created_time}</span></li>'
+	});
+});
+$("a[href='#tm']").one('show.bs.tab',function(){
+	$("a[href='#tmlog']").tab('show');
+	$("#transferForm").initForm({
+		callback: function(data){
+			tips("转帐成功:\n您已将 ￥{money} 转给 {transfer_to.display_name}。".render(data));
+		}
+	});
+});
+</script>
+{% endif %}
+{% if permissions.publish_passage %}
+<script type="text/javascript">
+$('a[href="#pl"]').one('show.bs.tab',function(){
+	API.list({
+		prev: "feedsPrevBtn",
+		next: "feedsNextBtn",
+		apiUrl: API.url("passages").param("author", data.id).param('exclude', 'attachments'),
+		container: "feedsContainer",
+		template: "<div class='container'><h3 class='text-center feeds-details-title'><a href='{url}'>{title}</a></h3><div class='text-center feeds-details-info'>{created_time}&nbsp;{% if is_self %}<a href='javascript:void(0);' data-id='{id}' class='del'>删除</a>{% endif %}</div><div class='feeds-details-text'>{content}</div></div>"
+	});
+	$("#feedsContainer").delegate('a.del', 'click', function() {
+		var $this = $(this);
+		API.url('passages').id($this.data('id')).delete()
+		.ok(function(){
+			$this.parent().parent().remove();
+		});
+	});
+});
+</script>
+{% endif %}
+
+{% if info.account_type == 'person' %}
+<script type="text/javascript">
+$("a[href='#dp']").one('show.bs.tab', function(){
+	function addFile(data) {
+		data.deleteTag = window.isSelf?'<a href="javascript:void(0);" class="del" data-id="{id}">删除</a>'.render(data):'';
+		$('<li class="list-group-item"><a href="{url}" target="_blank">{name}</a><span class="pull-right">{created_time}&nbsp;{deleteTag}</span></li>'.render(data)).prependTo($filesList);	
+	}
+
+	var $uploadForm = $("#debtReportsUploadForm"), $filesList = $("#debtReportsFilesList");
+	
+	$(window.data.profile.debt_files).each(function(){
+		addFile(this);
+	});
+	$filesList.delegate("a.del", 'click', function () {
+		var $this = $(this);
+		API.url("files").url("private").url("debt-files").id($this.attr("data-id")).delete()
+		.ok(function () {
+			$this.parent().parent().remove();
+		});
+	});
+	var $dpnum=$("#dpnum"), $dppro=$("#dppro");
+	if ($uploadForm.fileupload)
+	$uploadForm.fileupload({
+		iframe: true,
+		url: '/api/files/private/debt-files/',
+		autoUpload: true,
+		dataType: 'json',
+		formAccecptCharset: 'unicode',
+		done: function(e, xhr) {
+			addFile(xhr.result);
+		},
+		change: function(){
+			$dppro.removeClass("hidden");
+		},
+		progressall: function(e, data) {
+			var p=parseInt(data.loaded / data.total * 100, 10);
+			$dpnum.text(p);
+			if (p===100) $dppro.addClass('hidden');
+		}
+	});
+});
+</script>
+{% endif %}
+
+{% if permissions.has_report %}
+<script type="text/javascript">
+$("a[href='#pr']").one('show.bs.tab', function(){
+	function addFile(data) {
+		data.deleteTag = window.isSelf?'<a href="javascript:void(0);" class="del" data-id="{id}">删除</a>'.render(data):'';
+		$('<li class="list-group-item"><a href="{url}" target="_blank">{name}</a><span class="pull-right">{created_time}&nbsp;{deleteTag}</span></li>'.render(data)).prependTo($filesList);	
+	}
+
+	var $uploadForm = $("#reportsUploadForm"), $filesList = $("#reportsFilesList");
+	
+	$(window.data.profile.{{reports_field}}).each(function(){
+		addFile(this);
+	});
+	$filesList.delegate("a.del", 'click', function () {
+		var $this = $(this);
+		API.url("files").url("private").url("{{reports_field}}").id($this.attr("data-id")).delete()
+		.ok(function () {
+			$this.parent().parent().remove();
+		});
+	});
+	var $prnum=$("#prnum"), $prpro=$("#prpro");
+	if ($uploadForm.fileupload)
+	$uploadForm.fileupload({
+		iframe: true,
+		url: '/api/files/private/{{reports_field}}/',
+		autoUpload: true,
+		dataType: 'json',
+		formAccecptCharset: 'unicode',
+		done: function(e, xhr) {
+			addFile(xhr.result);
+		},
+		change: function(){
+			$prpro.removeClass("hidden");
+		},
+		progressall: function(e, data) {
+			var p=parseInt(data.loaded / data.total * 100, 10);
+			$prnum.text(p);
+			if (p===100) $prpro.addClass('hidden');
+		}
+	});
+});
+</script>
+{% endif %}
+{%endblock%}
+{% block config_script %}
+<script type="text/javascript">
+if (!$("#configForm").find("input").not(":submit").length) $('a[href="#cfinfo"]').remove();
+$("a[href='#cf']").one('show.bs.tab', function(){
+//config
+	$('#cful>li>a:first').tab('show');
+	var $configForm = $("#configForm");
+	$configForm.find('input, textarea, select').not(':submit').each(function(){
+		var $this = $(this);
+		$this.val(window.data.profile[$this.attr('name')]);
+	});
+	$configForm.initForm({
+		callback: function() {
+			window.location.href="";
+		}
+	});
+//set password
+	$("#setpswForm").initForm({
+		callback: function(){
+			tips("密码设置成功！");
+		}
+	});
+});
+</script>
+{% endblock %}

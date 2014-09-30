@@ -1,0 +1,50 @@
+{% extends "accounts/profile/base-profile.html" %}
+{% block sidebar %}
+<div class="panel panel-default utinfo">
+  <div class="panel-body">
+    用户名：{{info.display_name}}<br>
+    性别：{%if info.gender == 'M'%}男{%else%}女{%endif%}<br>
+    职位：{{info.position}}<br>
+    行业：{{info.industry}}<br>
+    所属公司：<a href="{{info.company.url}}">{{info.company.display_name}}</a><br>
+  </div>
+</div>
+<ul id="menu" class="nav nav-pills nav-stacked nav-utinfo">
+  {{block.super}}
+</ul>
+{% endblock %}
+
+{% block config_form %}
+<select name="gender" data-label="性别">
+	<option value="M">男</option>
+	<option value="F">女</option>
+</select>
+<input type="text" data-label="职位" name="position" validator="maxlength:20">
+{% if not info.company %}
+<select name="company" data-label="公司" id="selCpy">
+
+</select>
+{% endif %}
+{% endblock %}
+
+{% block tabs %}
+{{block.super}}
+{% endblock %}
+	
+{% block extra_script %}
+{{block.super}}
+<script type="text/javascript">
+$(function(){
+	if (window.data.profile.company == null) {
+		API.url('companies').get()
+		.ok(function(data){
+			var s = [];
+			$(data).each(function(){
+				s.push("<option value='{display_name}'>{display_name}</option>".render(this));
+			});
+			$(s.join()).appendTo("#selCpy");
+		});
+	}
+});
+</script>
+{% endblock %}

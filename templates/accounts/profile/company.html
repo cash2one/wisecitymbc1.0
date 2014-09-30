@@ -1,0 +1,112 @@
+{% extends "accounts/profile/base-profile.html" %}
+{% block sidebar %}
+<div class="panel panel-default utinfo">
+  <div class="panel-body">
+    公司名：{{info.display_name}}<br>
+    简介：{{info.description}}<br>
+    所属版块：{%if info.account_type == "company"%}{{info.section}}{%else%}金融{%endif%}<br>
+    行业：{%if info.account_type == "company"%}{{info.industry}}{%elif info.account_type == "bank"%}银行{%else%}基金公司{%endif%}<br>
+    联系方式：{{info.contact}}<br>
+    {% if info.account_type == 'bank' %}
+    利率：{{info.rate}}%<br>
+    {% endif %}
+  </div>
+</div>
+<ul id="menu" class="nav nav-pills nav-stacked nav-utinfo">
+  <li><a href="#mb" data-toggle="pill"><i class="fa fa-2x fa-users"></i> 成员名单</a></li>
+  {{block.super}}
+	{% if is_self %}
+  <li><a href="#pb" data-toggle="pill"><i class="fa fa-2x fa-pencil"></i>&nbsp;&nbsp;发布新闻</a></li>
+	{% endif %}
+	{% if not is_self and info.account_type == 'bank' and user.profile.info.account_type != 'media' %}
+	<li><a href="#atm" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>ATM机</a></li>
+	{% endif %}
+</ul>
+{% endblock %}
+
+{% block config_form %}
+{% if info.account_type != "company" %}
+<input type="text" data-label="版块" name="section" validator="maxlength:20">
+<input type="text" data-label="行业" name="industry" validator="maxlength:20">
+{% endif %}
+<input type="text" data-label="联系方式" name="contact" validator="maxlength:20">
+{% if info.account_type == 'bank' %}
+<input type="text" data-label="利率" name="rate" validator="number gt:0 lt:100">
+{% endif %}
+<textarea data-label="简介" cols="3" rows="5" name="description" validator="maxlength:140"></textarea>
+{% endblock %}
+
+{% block tabs %}
+{% if not is_self and info.account_type == 'bank' and user.profile.info.account_type != 'media' %}
+<div class="tab-pane fade in" id="atm">
+	<form id="atmForm" class="col-md-offset-3 col-md-6 mese" captcha>
+		<p>当前存款：￥<span id="spMoney"></span></p>
+		<input type="text" data-label="金额" name="money" validator="required number gt:0">
+		<input type="submit" value="存款" name="store" action="/api/banks/{{info.id}}/store/">
+		<input type="submit" value="取款" name="remove" action="/api/banks/{{info.id}}/remove/">
+	</form>
+</div>
+{% endif %}
+{% if is_self %}
+<div class="tab-pane fade in" id="pb">
+{% include "write.html" %}
+</div>
+{% endif %}
+<div class="tab-pane fade" id="mb">
+	<table class="table">
+		<thead>
+			<th>用户名</th>
+			<th>职位</th>
+		</thead>
+		<tbody>
+		{% for person in info.members %}
+		<tr>
+			<th>
+			{% if person.gender == "M" %}
+			<i class="fa fa-1x fa-male"></i>
+			{% else %}
+			<i class="fa fa-1x fa-female"></i>
+			{% endif %}	
+			<a href="{{person.url}}">{{person.display_name}}</a>
+			</th>
+			<th>
+				{{person.position}}
+			</th>
+		</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+{{block.super}}
+{% endblock %}
+
+{% block extra_script %}
+{% if not is_self and info.account_type == 'bank' and user.profile.info.account_type != 'media' %}
+<script type="text/javascript">
+$('a[href="#atm"]').one('show.bs.tab', function(){
+	function updateMoney(){
+		API.url("banks").id(window.data.profile.id).url("deposits").param("fields","money").get()
+		.ok(function(data){
+			data = data.results;
+			var val=(data.length?data[0].money:"0.0000");
+			$("#spMoney").html(val);
+		});
+	}
+	updateMoney();
+	$("#atmForm").initForm({
+		callback: {
+			store: function(data){
+				tips("存款成功！");
+				updateMoney();
+			},
+			remove: function(data) {
+				tips("取款成功！");
+				updateMoney();
+			}
+		}
+	});
+});
+</script>
+{% endif %}
+{{block.super}}
+{% endblock %}

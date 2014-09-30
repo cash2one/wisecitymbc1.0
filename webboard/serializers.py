@@ -10,7 +10,10 @@ class PassageSerializer(serializers.ModelSerializer):
 
 	author = WritableRelatedField(serializer_class = accounts.serializers.UserSerializer)
 	attachments = FileField(type = 'public', many = True, required = False)
+	url = serializers.SerializerMethodField('get_url')
 	
+	def get_url(self, obj):
+		return '/webboard/passages/%d/' % obj.id
 	class Meta:
 		model = models.Passage
 		

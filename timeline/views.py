@@ -6,7 +6,7 @@ from serializers import TimelineSerializer
 
 class TimelineAPIView(APIView):
 
-	permission_classes = (IsAdminUser,)
+	permission_classes = ()
 	
 	def get(self, request):
 		return Response(TimelineSerializer(Timeline().get()).data)

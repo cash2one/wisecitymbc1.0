@@ -6,6 +6,8 @@ __all__ = ['HasBondMixin', 'OwnBondMixin']
 
 class HasBondMixin(models.Model):
 
+	permission = 'has_bond'
+
 	bond_shares = generic.GenericRelation(
 			'bonds.Share',
 			content_type_field = 'owner_type',
@@ -13,8 +15,8 @@ class HasBondMixin(models.Model):
 	)
 	
 	def buy_bond(self, bond, money):
-		bond.check_published()
-		self.check_assets(money)
+		#@bond.check_published()
+		#self.check_assets(money)
 		bond.apply_money(self, money)
 		self.dec_assets(money)
 		
@@ -29,6 +31,8 @@ class HasBondMixin(models.Model):
 		abstract = True
 		
 class OwnBondMixin(models.Model):
+	
+	permission = 'own_bond'
 	
 	bonds = generic.GenericRelation(
 			'bonds.Bond',

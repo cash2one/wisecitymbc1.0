@@ -1,0 +1,112 @@
+{% extends "securities/base.html" %}
+{% block title %}{{object.display_name}}{% endblock %}
+{% block main %}
+<div class="container">
+	<div class="col-md-3">
+		<h4>{{object.display_name}}{% if object.published %}&nbsp;<small>已发布</small>{% endif %}</h4>
+	</div>
+	<div class="col-md-3">
+		<h4><small>@<a href="{{object.publisher.url}}">{{object.publisher.display_name}}</a></small></h4>
+	</div>
+	<div class="col-md-3">
+		<h4>已有资金：{{object.total_money}}</h4>
+	</div>
+	{% if object.published %}
+	<div class="col-md-3">
+		<h4>当前回报率：{{object.return_rate}}%</h4>
+	</div>
+	{% endif %}
+</div>
+<div class="container">
+	<div class="panel panel-default panel-mese2014">
+		<div class="panel-heading">申购条件</div>
+	</div>
+	<table class="table">
+		<thead>
+			<th>初始规模</th>
+			<th>基础回报率</th>
+			<th>预期回报率</th>
+			<th>发布时间</th>
+			<th>运行时间</th>
+		</thead>
+		<tbody>
+			<tr>
+				<th>￥{{object.initial_money}}</th>
+				<th>{{object.min_return_rate}}%</th>
+				<th>{{object.max_return_rate}}%</th>
+				<th>{{object.published_time}}</th>
+				<th>{{object.lasted_time}}</th>
+			</tr>
+		</tbody>
+	</table>
+</div>
+{% block main_block %}
+<div class="tab-content">
+	<div class="tab-pane fade in" id="buy">
+		<div class="col-md-6 col-md-offset-3">
+			<form id="buyForm" class="mese" captcha action="/api/funds/{{object.id}}/buy/">
+				<input type="text" name="money" data-label="资金" validator="required number gt:0">
+				<input type="submit" value="确认">
+			</form>
+		</div>
+	</div>
+	<div class="tab-pane fade in" id="cf">
+		<div class="col-md-6 col-md-offset-3">
+			<form id="cfForm" class="mese" captcha action="/api/funds/{{object.id}}/" method="patch">
+				<input type="text" name="return_rate" data-label="回报率" validator="required number gt:0" value="{{object.return_rate}}">
+				<input type="submit" value="修改">
+			</form>
+		</div>
+	</div>
+	<div class="tab-pane fade in" id="ransom">
+		<div class="col-md-6 col-md-offset-3">
+			<form id="ransomForm" class="mese" action="/api/funds/{{object.id}}/ransom/" captcha>
+				<input type="text" name="money" data-label="金额" validator="required number gt:0">
+				<input type="submit" value="确认">
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% endblock %}
+{% block sidebar %}
+{{block.super}}
+<ul class="nav nav-pills nav-stacked nav-utinfo">
+{% if object.published and object.fund_type == "open" or not object.published and user.profile.info.account_type != "media" %}
+	<li><a href="#buy" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请购买</a></li>
+{% endif %}
+{% if object.published %}
+	<li><a href="#ransom" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>申请赎回</a></li>
+{% endif %}
+{% if is_self %}
+	<li><a href="#cf" data-toggle="pill"><i class="fa fa-2x fa-bank"></i>设置</a></li>
+{% endif %}
+</ul>
+{% endblock %}
+{% block extra_script %}
+<script type="text/javascript">
+$(function(){
+	window.uid = {{object.id}};
+	window.api = API.url("funds").id(window.uid);
+	$("#cfForm").initForm({
+		callback: function(){
+			window.location.href="?uid="+window.uid;
+		}
+	});
+});
+$("a[href='#buy']").one('show.bs.tab', function(){
+	$("#buyForm").initForm({
+	  callback: function(){
+	    tips("购买成功！");
+	  }
+	});
+});
+$("a[href='#ransom']").one('show.bs.tab', function(){
+	$("#buyForm").initForm({
+	  callback: function(){
+	    tips("赎回申请已发出，请耐心等候。");
+	  }
+	});
+});
+</script>
+{% endblock %}

@@ -3,36 +3,58 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" > 
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8" >
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
 	 {% include "cdn.html" %}
-	 <script src="/static/js/jquery.dynatable.js"></script>
-	 <link href="/static/css/jquery.dynatable.css" type="text/css" />
-</script>
+	 {% block extra_head %}{% endblock %}
+	 <title>{%block title%}主页{%endblock%} - WiseCity</title>
   </head>
   <body style="height:100%">
     <nav class="mese-header" role="navigation">
 	  <div class="navbar-inner">
 	    <div class="container">
-               <div class="navbar-header">
+        <div class="navbar-header">
 		      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#mese-navbar-collapse">
-			    <span class="sr-only">Toggle navigation</span>
-			    <span class="icon-bar"></span>
-			    <span class="icon-bar"></span>
-			    <span class="icon-bar"></span>
+					  <span class="sr-only">Toggle navigation</span>
+					  <span class="icon-bar"></span>
+					  <span class="icon-bar"></span>
+					  <span class="icon-bar"></span>
 		      </button>
-			<a class="navbar-brand" href="#">Mese2014</a>
-               </div>
-		  <div class="collapse navbar-collapse" id="mese-navbar-collapse" style="height :50px;">
-	        <ul class="nav">
+          <a class="navbar-brand" href="/">
+          	<img src="//mese2014.sinaapp.com/static/img/LOGO.min.png" style="width:48px;margin-top:-10px;"></img>
+          </a>
+        </div>
+        <div class="collapse navbar-collapse" id="mese-navbar-collapse" style="height :50px;">
+	        <ul class="nav" id="topnav">
 		      <li><a href="/">首页</a></li>
 		      <li><a href="/securities/">交易大厅</a></li>
-		      <li><a href="/webboard/passages">新闻中心</a></li>
+					<li><a href="/accounts/companies/">企业信息</a></li>
+		      <li><a href="/webboard/passages/?type=">新闻中心</a></li>
 		      {% if user.is_authenticated %}
 		      <li><a href="/accounts/profile/">{{user.profile.info.display_name}}</a>
-		      <li><a href="/accounts/logout/">退出登录</a></li>
+		      <li><a href="/accounts/profile/#no"><i class="fa fa-1x fa-envelope-o"></i></a></li>
+		      <li><a href="/accounts/logout/">退出登录</a></li>		      
 		      {% else %}
 		      <li><a href="/accounts/login/">登录</a></li>
 		      {% endif %}
+		    </ul>
+	      </div>
+		  	<div class="collapse navbar-collapse" id="mese-navbar-collapse" style="height :25px;">
+	        <ul class="nav-info nav" id="topnav">
+            <script type="text/javascript">
+            	$(function(){
+            		API.url("timeline").get().ok(function(data){
+            			$("#start").parent()
+            			.before("<li><a href='javascript:void(0);'>系统时间：<b>{year}年 第{quarter}季度<b></a></li>".render(data));
+            		});
+                API.url("info").get().ok(function(data){
+									$("#start").parent()
+									.before("<li><a href='javascript:void(0)'>银行基准利率：{profit_rate}%</a></li><li><a href='javascript:void(0);'>GDP：{GDP}</li><li><a href='javascript:void(0);'>通货膨胀率：{inflation_rate}%</a></li>".render(data));
+								})
+							});
+						</script>
+		      <li><a id="start" style="padding:0;"></a></li>
 		    </ul>
 	      </div>
 		</div>
@@ -43,47 +65,69 @@
       
     </section>
     <main class="container">
-    <div class="col-sm-4" >
+    <div class="col-sm-5" >
       <div class="row" id="mGOV">
         <div class="panel panel-default panel-mese2014">
           <div class="panel-heading"><a href="/webboard/passages/?type=GOV">政府信息</a></div>
-            <ul class="list-group">
-    			  <li class="list-group-item">Cras justo odio</li>
-    			  <li class="list-group-item">Dapibus ac facilisis in</li>
-    			  <li class="list-group-item">Morbi leo risus</li>
-    			  <li class="list-group-item">Porta ac consectetur ac</li>
-    			  <li class="list-group-item">Vestibulum at eros</li>
-              <li class="list-group-item">Cras justo odio</li>
-    			  <li class="list-group-item">Dapibus ac facilisis in</li>
-    			  <li class="list-group-item">Morbi leo risus</li>
-    			  <li class="list-group-item">Porta ac consectetur ac</li>
-    			  <li class="list-group-item">Vestibulum at eros</li>
+            <ul class="list-group" id="GOV_container">
   			  </ul>
         </div>
       </div>
       <div class="row" id="mMED">
           <div class="panel panel-default panel-mese2014">
             <div class="panel-heading"><a href="/webboard/passages/?type=MED">新闻媒体</a></div>
-              <ul class="list-group">
-    			    <li class="list-group-item">Cras justo odio</li>
-    			    <li class="list-group-item">Dapibus ac facilisis in</li>
-    			    <li class="list-group-item">Morbi leo risus</li>
-    			    <li class="list-group-item">Porta ac consectetur ac</li>
-    			    <li class="list-group-item">Vestibulum at eros</li>
-                <li class="list-group-item">Cras justo odio</li>
-    			    <li class="list-group-item">Dapibus ac facilisis in</li>
-    			    <li class="list-group-item">Morbi leo risus</li>
-    			    <li class="list-group-item">Porta ac consectetur ac</li>
-    			    <li class="list-group-item">Vestibulum at eros</li>
+              <ul class="list-group" id="MED_container">
   			     </ul>
           </div>
      </div>
    </div>
-        <div class="col-sm-8">
+      <div class="col-sm-7">
+        <div class="row" id="mSTO">
+          <div class="panel panel-default panel-mese2014" style="border-bottom:0px;">
+            <div class="panel-heading">
+              期货板块
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <th>名称</th>
+              <th>价格</th>
+            </thead>
+            <tbody id="FUR_container">
+            {% for obj in futures %}
+            <tr>
+            	<th>{{obj.display_name}}</th>
+            	<th>{{obj.current_price}}</th>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
         <div class="row" id="mSTO">
           <div class="panel panel-default panel-mese2014" style="border-bottom:0px;">
             <div class="panel-heading"><a href="/securities/">
-              期货板块</a>
+              现货板块</a>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <th>名称</th>
+              <th>价格</th>
+            </thead>
+            <tbody id="GOD_container">
+            {% for obj in goods %}
+            <tr>
+            	<th>{{obj.display_name}}</th>
+            	<th>{{obj.current_price}}</th>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="row" id="mSTO">
+          <div class="panel panel-default panel-mese2014" style="border-bottom:0px;">
+            <div class="panel-heading"><a href="/securities/">
+              股票板块</a>
             </div>
           </div>
           <table class="table">
@@ -92,25 +136,95 @@
               <th>价格</th>
               <th></th>
             </thead>
-            <tbody>
-              <th>ID1</th>
-              <th><i class="fa fa-cny"> l2</i></th>
-              <th><i class="fa fa-caret-down fa-lg"></i></th>
-            </tbody>
+              <tbody id="STO_container">
+                  
+              <script>
+              </script>
+              </tbody>
           </table>
         </div>
-        </div>
-        <div class="row" id="mFUR">
-          
-        </div>
-      </div>
       </div>
     </main>
-    <script>
-	  $(document).ready(function() {
-	    $('#mese-navbar-collapse').collapse('show');
-	  })
-	</script>
+    <script type="text/javascript">
+    $(function(){
+			$('#mese-navbar-collapse').collapse('show');
+			API.list({
+	      apiUrl: API.url("passages").param("type","GOV").param('fields','title,url,created_time'),
+	      container: "GOV_container",
+	      template: "<li class='list-group-item'><a href='{url}'>{title}</a><span class='pull-right'>{created_time}</span></li>"
+    	});
+      API.list({
+        apiUrl:API.url("stocks").param('fields','display_name,current_price,url'),
+        container:"STO_container",
+        template:"<tr><th>{display_name}</th><th>{current_price}</th><th><a href='{url}'>详情</a></th></tr>"
+      });
+      API.list({
+        apiUrl: API.url("passages").param("type","MED").param('fields','title,url,created_time'),
+        container: "MED_container",
+        template: "<li class='list-group-item'><a href='{url}'>{title}</a><span class='pull-right'>{created_time}</span></li>"
+      });
+    });
+    </script>
     {% endblock %}
+    <br>
+    <center>
+    	<small>
+            <footer style="font-size:10px">
+		  		<p>Copyright hsfzxjy & hfercc. All rights reserved.<br>
+		  		
+		  			为了获得更加的体验，建议不要使用Internet Explorer 10以下的版本以及360安全浏览器，搜狗浏览器及360极速浏览器用户请关闭兼容模式。
+		  		</p>
+		  	</footer>
+    	</small>
+    </center>
+		<script type="text/javascript">
+			$(function(){
+				var logined;
+				{% if user.is_authenticated %} logined = true; {% endif %}
+				$("form").submit(function(e){
+					e.preventDefault();
+					return false;
+				});
+				function time(first){
+					var api = API.url("notifications").param('unread','');
+					if (!first){api = api.param('now','a')} else {api.param('now','b');}
+					api.get().ok(function(data){
+						$(data.results).each(function(){	
+							var $msg = [this.message];
+							if (this.url)
+							$msg.push("<br><a url='{url}' href='javascript:void(0);' data-id='{id}' class='detail'>详情</a>".render(this));
+							$msg.push("&nbsp;<a href='javascript:void(0);' id='{id}' class='confirm'>确认</a>".render(this))
+							console.log($msg);
+							toastr.info($msg.join(""), "系统消息")
+							.click(function(){
+								$(this).hide();
+							})
+							.find('a.confirm').click(function(){
+								API.url("notifications").id($(this).attr("id")).url("confirm").get().ok(function(){
+									$(this).parent().parent().hide();
+								});
+							})
+							.parent().find('a.detail').click(function(){
+								var that = $(this);
+								API.url("notifications").id(that.data("id")).url("confirm").get().ok(function(){
+									window.location.href = that.attr('url');
+								});
+							});
+						});
+					});
+				}
+				toastr.options.timeOut = 0;
+				toastr.options.tapToDismiss = false;
+				toastr.options.onhover = false;
+				if (logined){
+				time(true);
+				setTimeout(function(){
+					time();
+					var timeId = setTimeout(arguments.callee, 45000);
+				}, 45000);
+				}
+			});
+		</script>
+   {% block extra_script %}{%endblock%}
   </body>
 </html>

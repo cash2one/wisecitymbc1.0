@@ -5,9 +5,10 @@ import os.path
 class FileField(serializers.FileField):
 
 	encode_file = lambda self, obj:{
-			"file_name": os.path.basename(obj.file.name),
-			"file_url":obj.file.url,
+			"name": os.path.basename(obj.file.name),
+			"url":obj.file.url,
 			"id": obj.id,
+			"created_time": obj.created_time
 	}
 
 	def	__init__(self, *args, **kwargs):
@@ -27,11 +28,9 @@ class FileField(serializers.FileField):
 		
 	def to_native(self, value):
 		if self.many:
-			return [self.encode_file(file) for file in value.all()]
+			return FileSerializer(value.all(), many = self.many).data
 		else:
-			if value is None:
-				return
-			return self.encode_file(value)
+			return FileSerializer(value).data
 
 class FileSerializer(serializers.ModelSerializer):
 
@@ -39,9 +38,13 @@ class FileSerializer(serializers.ModelSerializer):
 	name = serializers.SerializerMethodField('get_file')
 	file = serializers.FileField(write_only = True)
 	url  = serializers.Field(source = 'file.url')
+	created_time = serializers.DateTimeField(read_only = True)
 	
 	def get_file(self, obj):
 		return os.path.basename(obj.file.name)
+		
+	class Meta:
+		model = File
 
 class PrivateFileSerializer(FileSerializer):
 

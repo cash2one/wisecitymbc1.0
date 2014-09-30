@@ -1,4 +1,5 @@
 {% extends "wb/passages.html" %}
+{%block title%}{{object.title}}{%endblock%}
 {%block breadcrumb%}
 <li><a href="/">首页</a></li>
 <li><a href="/webboard/passages/?type={{object.type}}">信息中心</a></li>
@@ -6,15 +7,21 @@
 {%endblock%}
 {% block passage_main %}
 <div id="feeds-container">
-	<h3 class='text-center feeds-details-title'>{{object.title}}</h3>
+	<h3 class='text-center feeds-details-title'>
+		{{object.title}}
+		{% if object.author.id == user.id %}
+			<a href="change/" alt="a"><small>编辑</small></a>
+		{% endif %}
+	</h3>
 	<div class='text-center feeds-details-info'>
-		{{object.created_time}} by @{{object.author.profile.info.display_name}}
+		{{object.created_time}} by @ <a href="{{object.author.url}}">{{object.author.profile.display_name}}</a>
 	</div>
 	<div class='feeds-details-text'>
 		{{object.content|safe}}
-	<div>
+    </div>
 </div>
 <br/>
+<h4 style="font-family:'Microsoft YaHei'">评论列表</h4>
 <ul class="list-group mese2014-list-group" id="cmtList">
 
 </ul>
@@ -25,36 +32,19 @@
 <form id="cmtForm" role="form">
 	<div class="col-md-12 input-group">
 		<input class="form-control form-login col-md-4" name="content" id="content"/>
-		<input type="submit" class="btn btn-mese2014-success btn-mese2014" value="评论"/>
+		<input type="submit" class="btn btn-mese2014-success btn-mese2014" value="评论" id="btnComment"/>
 	</div>
 </form>
 <script type="text/javascript">
 $(function(){
-	var passageId = {{object.id}}, apiPassage = API.url('passages').id(passageId), $cmts = $("#cmtList"),
-	$prevBtn = $("#prevBtn"), $nextBtn = $("#nextBtn");
-	$("#prevBtn, #nextBtn").click(function () {
-		API.raw($(this).data('url')).get().ok(updateComments);
-	});
-	function adjustPager($btn, data) {
-		if (data) {
-			$btn.show();
-			$btn.data('url', data);
-		} else $btn.hide();
-	}
-	function updateComments(data){
-		var elements=[];
-		adjustPager($prevBtn, data.previous);
-		adjustPager($nextBtn, data.next);
-		$(data.results).each(function(){
-			elements.push('<li class="list-group-item">{content}<span class="pull-right">{created_time}@{author.profile.display_name}</span></li>'.render(this));
+	var passageId = {{object.id}}, apiPassage = API.url('passages').id(passageId),
+		updateFunc = API.list({
+			apiUrl: apiPassage.url("comments"),
+			next: "nextBtn",
+			prev: "prevBtn",
+			container: "cmtList",
+			template: '<li class="list-group-item">{content}<span class="pull-right">{created_time} @ <a href="{author.url}">{author.profile.display_name}</a></span></li>'
 		});
-		$cmts.html("");
-		$(elements.join("")).appendTo($cmts);
-	}
-	function loadComments() {
-		apiPassage.url('comments').get().ok(updateComments);
-	}
-	loadComments();
 	$("#cmtForm").submit(function(e){
 		e.preventDefault();
 		var data = $(this).serializeObject();
@@ -63,7 +53,12 @@ $(function(){
 			return false;
 		}
 		$("#content").val("");
-		apiPassage.url('comments').post(data).ok(loadComments);
+		$("#btnComment").button("loading");
+		apiPassage.url('comments').post(data)
+		.ok(function(data){
+			$("#btnComment").button("reset");
+			updateFunc(data);
+		});
 		return false;
 	});
 });

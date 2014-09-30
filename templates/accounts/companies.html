@@ -1,0 +1,58 @@
+{% extends "index.html" %}
+{% block title %}企业{%endblock%}
+{% block main_content %}
+<main class="container">
+	<div class="col-sm-4">
+		<div class="row">
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">
+					公司
+				</div>
+				<ul class="list-group">
+				{% for company in companies.enterprises %}
+					<li class="list-group-item">
+						<a href="{{company.url}}">{{company.display_name}}</a>&nbsp;{{company.industry}}
+					</li>
+				{% endfor %}
+				</ul>
+			</div>
+		</div>
+		<div class="row">
+			<div class="panel panel-default panel-mese2014">
+				<div class="panel-heading">
+					银行
+				</div>
+				<ul class="list-group">
+				{% for company in companies.banks %}
+					<li class="list-group-item">
+						<a href="{{company.url}}">{{company.display_name}}</a>&nbsp;{{company.industry}}
+					</li>
+				{% endfor %}
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-8">
+		<div class="list-group" id="feedsContainer">
+		
+		</div>
+    <div class="pager">
+			<button class="btn btn-link pull-left" id="prevBtn">上一页</button>
+			<button class="btn btn-link pull-right" id="nextBtn">下一页</button>
+		</div>
+	</div>
+</main>
+{% endblock %}
+{% block extra_script %}
+<script type="text/javascript">
+$(function(){
+	API.list({
+		prev: 'prevBtn',
+		next: 'nextBtn',
+		apiUrl: API.url('passages').param('type', 'ENT'),
+		container: 'feedsContainer',
+		template: "<h3 class='text-center feeds-details-title'><a href='{url}'>{title}</a></h3><div class='text-center feeds-details-info'>{created_time} by @ <a href='{author.url}'>{author.profile.display_name}</a></div><div class='feeds-details-text'>{content}</div>"
+	});
+});
+</script>
+{% endblock %}

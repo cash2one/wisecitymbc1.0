@@ -1,9 +1,16 @@
+#encoding=utf8
 from django.db import models
 from django.contrib.auth.models import User
 from common.fields import FinancialYearField
 from common.utils import check_base_class_by_name
 from files.models import PublicFile
 from django.core.exceptions import ValidationError
+
+from notifications import Dispatcher
+
+dispatcher = Dispatcher({
+	'comment': u'${user}评论了你的文章${passage}。'
+})
 
 class Passage(models.Model):
 	
@@ -23,11 +30,11 @@ class Passage(models.Model):
 	TYPE_CHOICES = map(lambda x:(x[1], x[0]), TYPE_MAP.iteritems())
 	
 	type = models.CharField(max_length = 3, editable = False, choices = TYPE_CHOICES)
-	title = models.CharField(max_length = 255)
+	title = models.CharField(max_length = 255, verbose_name = u'标题')
 	created_time = models.DateTimeField(auto_now_add = True)
 	year = FinancialYearField()
-	author = models.ForeignKey(User, related_name = 'passages')
-	content = models.TextField()
+	author = models.ForeignKey(User, related_name = 'passages', verbose_name = u'作者')
+	content = models.TextField(verbose_name = u'内容')
 	attachments = models.ManyToManyField(PublicFile, related_name = 'passages')
 	
 	def clean_fields(self, *args, **kwargs):
@@ -40,10 +47,15 @@ class Passage(models.Model):
 		super(Passage, self).clean_fields(*args, **kwargs)
 	
 	def __unicode__(self):
-		return "Passage: %s" % self.title
+		return u"%s" % self.title
+		
+	def get_absolute_url(self):
+		return '/webboard/passages/%d/' % self.id	
 		
 	class Meta:
-		ordering = ['-created_time', 'title']
+		ordering = ['-created_time']
+		verbose_name = u'文章'
+		verbose_name_plural = verbose_name
 		permissions = [
 			['publish_passage', 'Publish passage.']
 		]
@@ -54,7 +66,12 @@ class Comment(models.Model):
 	author = models.ForeignKey(User, related_name = 'comments')
 	created_time = models.DateTimeField(auto_now_add = True)
 	passage = models.ForeignKey(Passage, related_name = 'comments')
-	#respond_comment = models.ForeignKey('self', related_name = 'responses', blank = True, null = True)
+	
+	def send(self):
+		dispatcher.send('comment', {
+				'passage': self.passage,
+				'user': self.author.profile.info
+		}, recipient = self.passage.author, target = self.passage)
 	
 	def __unicode__(self):
 		return "%s comment for passage %s" % (self.author.username, self.passage.title)

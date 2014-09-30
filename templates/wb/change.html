@@ -1,0 +1,14 @@
+{% extends "wb/write.html" %}
+{%block title%}[修改]{{object.id}}{%endblock%}
+{% include "upload_cdn.html" %}
+{%block extra_passage%}
+<script type="text/javascript">
+window.objectId = "{{object.id}}";
+window.submit = function (data) {
+	return API.url("passages").id("{{object.id}}").patch(data);
+};
+$(function(){
+	$("#title").val("{{object.title}}");
+});
+</script>
+{% endblock %}

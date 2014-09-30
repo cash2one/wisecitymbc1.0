@@ -1,0 +1,24 @@
+{% extends "securities/funds/detail.html" %}
+{% block title %}设置密码{% endblock %}
+{% block main_block %}
+<div class="container">
+	<form id="form" class="col-md-offset-3 col-md-6 mese" action="/api/funds/{{object.id}}/account/">
+		<input type="text" name="username" data-label="登录名" validator="required minlength:1 maxlength:20">
+		<input type="password" name="password" data-label="密码" validator="required maxlength:20">
+		<input type="submit" value="提交">
+	</form>
+</div>
+{% endblock %}
+{% block extra_script %}
+{{block.super}}
+<script type="text/javascript">
+$(function(){
+	$("#form").initForm({
+		callback: function (data) {
+			window.location.href = '/accounts/profile/?uid='+data.id;
+		}
+	});
+});
+</script>
+{% endblock %}
+{% block sidebar %}{% endblock %}

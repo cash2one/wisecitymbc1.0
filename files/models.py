@@ -21,11 +21,18 @@ class File(models.Model):
 	)
 	file_type = models.CharField(max_length = 7, choices = FILE_TYPE_CHOICES)
 	
+	def delete(self, *args, **kwargs):
+		self.file.delete()
+		super(File, self).delete(*args, **kwargs)
+	
 	def __unicode__(self):
 		return u"文件 %s" % os.path.basename(self.file.name)
 	
 	class Meta:
 		ordering = ['-created_time']
+		permissions = (
+			('has_report', 'Has report'),
+		)
 
 class PublicFileManager(models.Manager):
 	

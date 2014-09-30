@@ -11,9 +11,16 @@ from django.db import connection
 
 from decimal import Decimal
 
-from notifications import send_notification
+from notifications import Dispatcher
 
 from django.core.exceptions import ValidationError
+
+dispatcher = Dispatcher({
+	'create': u'${fund}已成功创建，请设置基金帐号的密码。',
+	'end': u'${fund}已经结束，所有信息将被删除。',
+	'delete': u'${fund}未达到运行条件，已被取消。',
+	'ransom': u'${actor}申请赎回基金￥${money}'
+})
 
 class FundManager(models.Manager):
 	
@@ -29,7 +36,7 @@ class Fund(models.Model):
 		(CLOSE, 'close'),
 	)
 	
-	display_name = models.CharField(max_length = 255, default = '')
+	display_name = models.CharField(max_length = 255, default = '', verbose_name = u'名称')
 
 	publisher_type = models.ForeignKey(ContentType, null = True, blank = True)
 	publisher_object_id = models.PositiveIntegerField(null = True, blank = True)
@@ -67,7 +74,7 @@ class Fund(models.Model):
 			share.save()
 		else:
 			share.inc_money(money)
-		if self.published:
+		if self.published and self.account is not None:
 			self.account.inc_assets(money)
 		
 	def share_profits(self, commit = True):
@@ -83,34 +90,37 @@ class Fund(models.Model):
 		if self.account:
 			self.account.profile.user.delete()
 			self.account.delete()
-		#self.delete()
+		self.delete()
 	
 	def finish(self):
 		shares = self.shares.prefetch_related()
 		for share in self.shares.all():
 			share.owner.inc_assets(share.money)
 		shares.delete()
-		self._send_notification(u'结束了', action = 'delete')
+		self._send_notification('end')
 		self._end()
 	
-	def _send_notification(self, verb, recipient = None, **kwargs):
+	def _send_notification(self, key, args = {}, recipient = None, **kwargs):
 		if recipient is None:
 			recipient = self.publisher.profile.user
+			
+		args['fund'] = self
 		
-		return send_notification(recipient = recipient, verb = verb, actor = u'系统', target = self, **kwargs)
+		return dispatcher.send(key, args, target = self, recipient = recipient, **kwargs)
 	
-	def publish(self, delete_on_failed = True):
-		print self.total_money
-		if self.total_money >= self.initial_money:
-			if delete_on_failed:
-				self._send_notification(u'被取消了')
-				self._end()
-			else:
-				raise ValidationError("")
-				
-		send_notification(u'发布了')
+	def get_absolute_url(self):
+		return '/funds/detail/?uid=%d' % self.id 
+	
+	def publish(self):   
+		if not self.total_money >= self.initial_money:
+			self._send_notification('delete', action = 'delete')
+			self._end()
+			return
+		self._send_notification('create', important = True, url = '/funds/setps/?uid=%d' % self.id)
+		self.published = True
+		self.save()        
 		
-	def create_user(username, password):
+	def create_user(self, username, password):
 		User = ContentType.objects.get(app_label = 'auth', model = 'user').model_class()
 		user = User.objects.create_user(username = username, password = password)
 		account = user.profile.create_info('Fund', display_name = self.display_name, assets = self.total_money)
@@ -131,6 +141,12 @@ class Fund(models.Model):
 	
 	class Meta:
 		ordering = ['-created_time']
+		verbose_name = u'基金'
+		verbose_name_plural = u'基金'
+		permissions = (
+			('has_fund', 'Has fund'),
+			('own_fund', 'Own fund'),
+		)
 		
 	objects = FundManager()
 		
@@ -154,7 +170,11 @@ class RansomApplication(models.Model):
 	owner_object_id = models.PositiveIntegerField(null = True, blank = True)
 	owner = generic.GenericForeignKey('owner_type', 'owner_object_id')
 	money = DecimalField()
-	created_time = models.DateTimeField(auto_now_add = True)			
+	created_time = models.DateTimeField(auto_now_add = True)		
+			
+	def delete(self, *args, **kwargs):
+		self.fund.apply_money(self.owner, -self.money)
+		super(RansomApplication, self).delete(*args, **kwargs)
 		
 class Share(get_inc_dec_mixin(['money'])):
 
@@ -168,10 +188,11 @@ class Share(get_inc_dec_mixin(['money'])):
 	
 	def save(self, *args, **kwargs):
 		super(Share, self).save(*args, **kwargs)
+		total_money = self.fund.total_money        
 		cursor = connection.cursor()
 		cursor.execute(
-				"""UPDATE funds_share, (SELECT SUM(money) as sum FROM funds_share WHERE fund_id=%d) as t SET percentage=ROUND(money/t.sum*100,4)
-				""" % self.fund.id
+				"""UPDATE funds_share SET percentage=ROUND(money/"%s"*100,4)
+				""" % total_money
 		)
 	
 	def pre_set_money(self, value):

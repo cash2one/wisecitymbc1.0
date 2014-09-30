@@ -34,7 +34,7 @@ class Captcha(object):
 
         """
         self.django_request = request
-        self.session_key = '_django_captcha_key_%s' % request.META['PATH_INFO']
+        self.session_key = '_django_captcha_key_%s' % request.META['HTTP_REFERER']
         self.words = self._get_words()
 
         # 验证码图片尺寸
@@ -174,6 +174,8 @@ class Captcha(object):
         检查用户输入的验证码是否正确 
         """
         _code = self.django_request.session.get(self.session_key) or ''
+        print self.django_request.session.keys()
+        print _code, self.session_key
         if not _code:
             return False
         return _code.lower() == str(code).lower()

@@ -1,7 +1,7 @@
 #encoding=utf8
 from __future__ import division
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.core.exceptions import ValidationError
 
 from django.contrib.contenttypes.models import ContentType
@@ -14,17 +14,20 @@ from signals import application_updated
 
 from decimal import Decimal
 
-from notifications import send_notifications
+from notifications import Dispatcher
+
+dispatcher = Dispatcher(u'系统处理了你的股票${type}申请：成功${type}了${stock}。')
 
 class Stock(models.Model):
 	
-	display_name = models.CharField(max_length = 255, default = '', editable = False)
+	display_name = models.CharField(max_length = 255, default = '', verbose_name=u"名称")
 	
 	publisher_type = models.ForeignKey(ContentType, null = True, blank = True)
 	publisher_object_id = models.PositiveIntegerField(null = True, blank = True)
 	publisher = generic.GenericForeignKey('publisher_type', 'publisher_object_id')
 	
-	current_price = DecimalField()
+	current_price = DecimalField(verbose_name='价格')
+	total_shares = models.BigIntegerField(blank = True, default = 0)
 	created_time = models.DateTimeField(auto_now_add = True)
 	
 	def transfer(self, app_seller, app_buyer, shares):
@@ -47,16 +50,25 @@ class Stock(models.Model):
 		share = buyer.get_stock_share(self, create = True).inc_shares(shares)
 		
 	def update_price(self, price):
-		if Decimal(price) - Decimal(self.current_price) > 1e-4:
+		if abs(Decimal(price) - Decimal(self.current_price)) > 1e-4:
 			Log.objects.create(stock = self, price = price)
 			self.current_price = price
 			self.save()
 	
 	def __unicode__(self):
 		return u"股票 %s" % self.display_name
+		
+	def get_absolute_url(self):
+		return '/stocks/detail/?uid=%d' % self.id
 	
 	class Meta:
 		ordering = ['-current_price', '-created_time']
+		verbose_name = u'股票'
+		verbose_name_plural = u'股票'
+		permissions = (
+			('has_stock', 'Has Stock'),
+			('own_stock', 'Own stock'),
+		)
 	
 class Log(models.Model):
 	
@@ -70,7 +82,8 @@ class Log(models.Model):
 class ApplicationManager(models.Manager):
 
 	def fetch_suitable_applications(self, application):
-		return self.filter(stock = application.stock, price = application.price, shares__gt = Decimal(0)).exclude(command = application.command)
+		s = self.filter(stock = application.stock, price = application.price, shares__gt = Decimal(0)).exclude(command = application.command).exclude(applicant_type = application.applicant_type, applicant_object_id = application.applicant_object_id)      
+		return s
 		
 class Application(get_inc_dec_mixin(['shares', 'price'])):
 
@@ -88,15 +101,8 @@ class Application(get_inc_dec_mixin(['shares', 'price'])):
 	stock = models.ForeignKey(Stock, related_name = 'applications')
 	command = models.CharField(max_length = 4, choices = COMMAND_CHOICE)
 	price  = DecimalField()
-	shares = DecimalField()
+	shares = models.BigIntegerField(blank = True, default = 0)
 	created_time = models.DateTimeField(auto_now_add = True)
-	
-	# def decrease_or_delete(self, shares):
-		# self.dec_shares(shares, commit = False)
-		# if self.shares == Decimal(0) and self.id:
-			# self.delete()
-		# else:
-			# self.save()
 	
 	def get_share(self):
 		if not hasattr(self, '_share'):
@@ -104,16 +110,8 @@ class Application(get_inc_dec_mixin(['shares', 'price'])):
 			
 		return self._share
 	
-	def clean(self):
-		current_price, new_price = Decimal(self.stock.current_price), Decimal(self.price)
-		assert abs((current_price-new_price) / current_price) <= 0.2, "Stock price overflow."
-		if self.command and self.command == self.BUY:
-			self.applicant.check_assets(new_price * self.shares)
-
-		if self.command and self.command == self.SELL:
-			self.get_share()
-			if self._share is None or self._share.shares < self.shares:
-				raise SharesNotEnough			
+	def clean(self):	
+		pass
 	
 	def save(self, send = False, *args, **kwargs):
 		if send and self.id is not None:
@@ -130,7 +128,7 @@ class Application(get_inc_dec_mixin(['shares', 'price'])):
 		return u'股票 %s 的%s申请' % (self.stock.display_name, action) 
 	
 	class Meta:
-		ordering = ['created_time', 'price']
+		ordering = ['-created_time', 'price']
 		
 	objects = ApplicationManager()
 		
@@ -145,11 +143,18 @@ class Share(get_inc_dec_mixin(['shares'])):
 	owner = generic.GenericForeignKey('owner_type', 'owner_object_id')
 	
 	stock = models.ForeignKey(Stock, related_name = 'shares')
-	shares = DecimalField()
+	shares = models.IntegerField(blank = True, default = 0)
 	
 	objects = ShareManager()
 	
 def process_application_updated(sender, **kwargs):
+	
+	def get_type(app):
+		if app.command == Application.SELL:
+			return u'卖出'
+		else:
+			return u'买入'	
+	
 	application = kwargs.get('application', None)
 	stock = application.stock
 	price = application.price
@@ -163,14 +168,15 @@ def process_application_updated(sender, **kwargs):
 			break
 	if not application_sets:
 		return
-	print application_sets
 
 	notifications = [{
 			'recipient': application.applicant.profile.user,
-			'verb': u'处理了',
-			'actor': u'系统',
 			'target': application,
 			'action': 'delete',
+			'args': {
+				'type': get_type(application),
+				'stock': stock
+			}
 	}]
 		
 	for _application, share in application_sets:
@@ -179,11 +185,13 @@ def process_application_updated(sender, **kwargs):
 		else:
 			seller, buyer = application, _application
 		notifications.append({
-				'actor': u'系统',
-				'verb': u'处理了',
 				'recipient': _application.applicant.profile.user,
 				'target': _application,
 				'action': 'delete',
+				'args': {
+					'type': get_type(_application),
+					'stock': stock
+				}
 		})
 		stock.transfer(seller, buyer, share)	
 		
@@ -191,7 +199,8 @@ def process_application_updated(sender, **kwargs):
 		notifications[-1]['action'] = 'null'
 	elif quantity > 0:
 		notifications[0]['action'] = 'null'
-	send_notifications(notifications)
+	print notifications
+	dispatcher.multi_send('_', data = notifications)
 		
 	stock.update_price(price)
 	

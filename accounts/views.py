@@ -1,3 +1,4 @@
+#encoding=utf-8
 from django.contrib import auth
 from django.shortcuts import render_to_response, get_object_or_404
 from annoying.decorators import ajax_by_method
@@ -7,21 +8,75 @@ from rest_framework import views, generics, mixins, viewsets, permissions, statu
 from rest_framework.decorators import *
 from rest_framework.response import Response
 
+from common.exceptions import ParamError
+from captcha.decorators import check_captcha
+from securities.funds.serializers import FundSerializer
+
+from django.core.cache import cache
+from common.cache import get_cache_key
+
 import models, serializers
 import json
 
+from django.contrib.auth.decorators import login_required
+
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def set_password(request):
+	return Response(template_name = 'accounts/set_password.html')
+
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def company_index(request):
+	cache_key = get_cache_key(request)
+	res = cache.get(cache_key)
+	if res is None:
+		res = serializers.get_enterprises()
+		cache.set(cache_key, res, 60)
+	return Response({'companies':res}, template_name = 'accounts/companies.html')
+	
+@api_view(['GET'])
+@renderer_classes([renderers.JSONRenderer])
+def companies(request):
+	data = models.filter_accounts(account_type=['company', 'fundcompany', 'bank'])
+	_ = []
+	for i in data:
+		i.pop('class')
+		_.append(i)
+	return Response(_)
+	
+@login_required	
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
 def profile(request):
+
+	class Perm(object):
+		def __init__(self, user):
+			self.__permissions = user.user_permissions.values_list('codename')
+			
+		def __getattr__(self, name):
+			return (name,) in self.__permissions
+
 	uid = request.REQUEST.get('uid', None)
 	if uid is not None:
 		user_obj = get_object_or_404(auth.models.User, id = uid)
-		is_self = False
+		is_self = user_obj == request.user
 	else:
 		uid = request.user.id
 		user_obj = request.user
 		is_self = True
-	return Response({'user_object':user_obj, 'uid':uid, 'is_self':is_self}, template_name = 'accounts/profile.html')
+		
+	fund = None
+	if user_obj.profile.info.account_type == 'fund':
+		fund = FundSerializer(user_obj.profile.info.fund).data
+		
+	data = serializers.UserSerializer(user_obj, safe_fields = False).data
+	return Response({
+			'fund': fund,
+			'user_object': data, 
+			'permissions': Perm(user_obj),
+			'json': renderers.JSONRenderer().render(data),
+			'is_self':is_self}, template_name = 'accounts/profile.html')
 
 class UserAPIViewSet(viewsets.ModelViewSet):
 	
@@ -34,16 +89,88 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 			return self.request.user
 		else:
 			return super(UserAPIViewSet, self).get_object()
+			
+	def list(self, request, *args, **kwargs):
+		self.object_list = self.filter_queryset(self.get_queryset())
+
+		if not self.allow_empty and not self.object_list:
+			class_name = self.__class__.__name__
+			error_msg = self.empty_error % {'class_name': class_name}
+			raise Http404(error_msg)
+
+		fields = request.REQUEST.get('fields','')
+		if fields:
+			fields = fields.split(',')
+		page = self.paginate_queryset(self.object_list)
+		if page is not None:
+			serializer = self.get_pagination_serializer(page, profile_fields = fields)
+		else:
+			serializer = self.get_serializer(self.object_list, many=True, profile_fields = fields)
+
+		return Response(serializer.data)
+			
+	def retrieve(self, request, *args, **kwargs):
+		self.object = self.get_object()
+		fields = request.REQUEST.get('fields', [])
+		if fields:
+			fields = fields.split(',')
+		serializer = self.get_serializer_class()(self.object, profile_fields = fields)
+		return Response(serializer.data)
+			
+	def destroy(self, request, *args, **kwargs):
+		user = self.get_object()
+		print user.profile.info
+		if user.profile.info:
+			print 'del'
+			user.profile.info.delete()
+		user.profile.delete()
+		
+		return super(UserAPIViewSet, self).destroy(request, *args, **kwargs)		
+			
+	def create(self, request, *args, **kwargs):
+		serializer = serializers.CreateUserSerializer(data = request.DATA)
+		if serializer.is_valid():
+			return Response(serializers.UserSerializer(serializer.object).data)
+		else:
+			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+	
+	@action(methods=['POST'])
+	def init(self, request, *args, **kwargs):
+		user = self.get_object()
+		user.set_password("12345")
+		user.save()
+		return Response("OK")
+	
+	@action(methods=['POST'])
+	@check_captcha()
+	def set_password(self, request, *args, **kwargs):
+		old_password = request.DATA.get('old_password','')
+		new_password = request.DATA.get('new_password','')
+		if not request.user.check_password(old_password):
+			raise ParamError
+		request.user.set_password(new_password)
+		request.user.save()
+		return Response("OK")
+	
+	@action(methods=['POST'])
+	def dec(self, request, *args, **kwargs):
+		data = dict(request.DATA)
+		data['account'] = self.get_object().profile.info
+		serializer = serializers.DecAssetsSerializer(data = data)
+		if serializer.is_valid():
+			return Response('OK')
+		else:
+			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 	
 	@action(methods=['GET', 'PATCH'])
 	def profile(self, *args, **kwargs):
 		profile = self.get_object().profile.info
-		serializer = serializers.get_serializer_by_object(profile)(profile, data = self.request.DATA)
 		
 		if self.request.method == 'GET':
 			serializer_class = serializers.get_serializer_by_object(profile)
 			return Response(serializer_class(profile).data)
 		elif self.request.method == 'PATCH':
+			serializer = serializers.get_serializer_by_object(profile)(profile, data = self.request.DATA, partial = True)
 			if not serializer.is_valid():
 				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -52,27 +179,19 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 	
 @csrf_exempt
 def login(request):
-	if request.user.is_authenticated():
-		return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-	
 	if request.method == 'GET':
 		http_referer = request.META.get('HTTP_REFERER', '/')
-		print http_referer
 		request.session['referer'] = http_referer
 		return render_to_response('accounts/login.html')
 	#POST
-	
-	print request.POST
 	username = request.POST.get('username', '')
 	password = request.POST.get('password', '')
-	print username,password
 	user = auth.authenticate(username = username, password = password)
-	print request.session['referer']
 	if user is None:
 		return HttpResponse('',status=status.HTTP_400_BAD_REQUEST)
 	else:
 		auth.login(request, user)
-		return HttpResponse(json.dumps({'status':'success', 'referer': request.session['referer']}))
+		return HttpResponse(json.dumps({'status':'success', 'referer': request.session.get('referer','/')}))
 		
 def logout(request):
 	auth.logout(request)

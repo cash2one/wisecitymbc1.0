@@ -13,7 +13,7 @@ class CheckPublishCron(cron.Cron):
 	def get_interval_minutes(self):
 		return 1
 	
-	def do(self):
+	def do(self): 
 		for fund in Fund.objects.filter(published_time__lte = self.now, published = False):
 			fund.publish()
 			
