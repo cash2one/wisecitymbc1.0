@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"ex",
+				"Extended"
+			],
+			[
+				"__",
+				"__init__"
+			],
+			[
 				"cl",
 				"close	close"
 			],
@@ -28,29 +36,18 @@
 	"buffers":
 	[
 		{
-			"contents": "    var\n        n, _, i: longint;\n\n    function h: int64; inline;\n    var\n        k, t: longint;\n    begin\n        h := 0;\n        t := trunc(sqrt(n));\n        k := 1;\n        while k <=t do\n        begin\n            h := h + n div k;\n            inc(k);\n        end;\n        h := h * 2 - t * t;\n    end;\n\n    begin\n        assign(input, 'main.in'); reset(input);\n        assign(output, 'main.out'); rewrite(output);\n\n        readln(_);\n        while _ > 0 do\n        begin\n            dec(_);\n            readln(n);\n            if n <= 0 then\n                writeln(0)\n            else\n                writeln(h);\n        end;\n\n        close(input);\n        close(output);\n    end.",
-			"file": "/home/hsfzxjy/srcs/exercises/uva11526/main.pas",
-			"file_size": 555,
-			"file_write_time": 1413644740000000,
+			"file": "/home/hsfzxjy/srcs/exercises/noip2012/day2/classroom/main.pas",
 			"settings":
 			{
-				"buffer_size": 683,
+				"buffer_size": 3693,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/hsfzxjy/srcs/exercises/uva11526/main.out",
+			"file": "/home/hsfzxjy/srcs/exercises/Training/20141104/machine/machine.pas",
 			"settings":
 			{
-				"buffer_size": 15,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/hsfzxjy/srcs/exercises/uva11526/main.in",
-			"settings":
-			{
-				"buffer_size": 15,
+				"buffer_size": 994,
 				"line_ending": "Unix"
 			}
 		}
@@ -131,6 +128,31 @@
 	},
 	"file_history":
 	[
+		"/home/hsfzxjy/srcs/exercises/Training/20141104/WORK/work.pas",
+		"/home/hsfzxjy/srcs/exercises/noip2012/day1/game/main.pas",
+		"/tmp/main.pas",
+		"/tmp/main.in",
+		"/home/hsfzxjy/srcs/exercises/noip2011/day2/qc/main.pas",
+		"/tmp/main.out",
+		"/home/hsfzxjy/srcs/mese2014/1/meta/query.py",
+		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/__init__.py",
+		"/home/hsfzxjy/srcs/mese2014/1/meta/models.py",
+		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/query.py",
+		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/sql/query.py",
+		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/sql/where.py",
+		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/backends/__init__.py",
+		"/home/hsfzxjy/下载/neithere-eav-django-83882c788122/examples/grocery_shop/grocery/models.py",
+		"/home/hsfzxjy/下载/neithere-eav-django-83882c788122/eav/models.py",
+		"/home/hsfzxjy/下载/neithere-eav-django-83882c788122/eav/managers.py",
+		"/home/hsfzxjy/下载/neithere-eav-django-83882c788122/eav/fields.py",
+		"/home/hsfzxjy/srcs/mese2014/2/accounts/models.py",
+		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/sql/compiler.py",
+		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/query_utils.py",
+		"/home/hsfzxjy/下载/neithere-eav-django-83882c788122/examples/grocery_shop/grocery/forms.py",
+		"/home/hsfzxjy/下载/neithere-eav-django-83882c788122/eav/facets.py",
+		"/home/hsfzxjy/srcs/exercises/uva11526/main.pas",
+		"/home/hsfzxjy/srcs/exercises/uva11526/main.in",
+		"/home/hsfzxjy/srcs/exercises/uva11526/main.out",
 		"/home/hsfzxjy/srcs/exercises/uva208/main.in",
 		"/home/hsfzxjy/srcs/exercises/uva208/main.out",
 		"/home/hsfzxjy/srcs/exercises/uva208/main.pas",
@@ -170,7 +192,6 @@
 		"/home/hsfzxjy/.config/sublime-text-2/Packages/Pascal/assign.sublime-snippet",
 		"/home/hsfzxjy/桌面/srcs/mese2014/1/accounts/models.py",
 		"/home/hsfzxjy/桌面/srcs/mese2014/1/metautil/models.py",
-		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/query.py",
 		"/home/hsfzxjy/桌面/srcs/mese2014/1/lib/model_utils/managers.py",
 		"/home/hsfzxjy/桌面/srcs/mese2014/1/lib/model_utils/fields.py",
 		"/usr/local/lib/python2.7/dist-packages/Django-1.5.5-py2.7.egg/django/db/models/manager.py",
@@ -183,7 +204,6 @@
 		"/home/hsfzxjy/srcs/exercises/uva11582/main.in",
 		"/home/hsfzxjy/srcs/exercises/uva11582/main.out",
 		"/home/hsfzxjy/srcs/exercises/uva11582/main.pas",
-		"/tmp/main.pas",
 		"/home/hsfzxjy/srcs/exercises/uva10723/main.pas",
 		"/home/hsfzxjy/srcs/exercises/uva10723/main.in",
 		"/home/hsfzxjy/srcs/exercises/uva10723/main.out",
@@ -226,6 +246,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"edges[x][0]",
+			"    \n",
+			"where",
+			"connections",
 			"exec",
 			"exec_",
 			"print",
@@ -240,6 +264,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"en[x]",
 			"longint",
 			"sublime.desktop"
 		],
@@ -252,23 +277,23 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "/home/hsfzxjy/srcs/exercises/uva11526/main.pas",
+					"file": "/home/hsfzxjy/srcs/exercises/noip2012/day2/classroom/main.pas",
 					"settings":
 					{
-						"buffer_size": 683,
+						"buffer_size": 3693,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								683,
-								683
+								0,
+								0
 							]
 						],
 						"settings":
@@ -321,28 +346,31 @@
 								"bh_single_quote_open",
 								"bh_single_quote_close"
 							],
-							"syntax": "Packages/fp/Pascal.tmLanguage"
+							"origin_encoding": "UTF-8",
+							"syntax": "Packages/fp/Pascal.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 50.0,
+						"translation.y": 2214.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "/home/hsfzxjy/srcs/exercises/uva11526/main.out",
+					"file": "/home/hsfzxjy/srcs/exercises/Training/20141104/machine/machine.pas",
 					"settings":
 					{
-						"buffer_size": 15,
+						"buffer_size": 994,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6,
-								6
+								475,
+								475
 							]
 						],
 						"settings":
@@ -396,84 +424,12 @@
 								"bh_single_quote_close"
 							],
 							"origin_encoding": "ASCII",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
+							"syntax": "Packages/fp/Pascal.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "/home/hsfzxjy/srcs/exercises/uva11526/main.in",
-					"settings":
-					{
-						"buffer_size": 15,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								12,
-								12
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 54.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -526,6 +482,22 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"djangodb__",
+				"django/db/backends/__init__.py"
+			],
+			[
+				"djangomodelssql",
+				"django/db/models/sql/query.py"
+			],
+			[
+				"djangodbmodelsquer",
+				"django/db/models/query.py"
+			],
+			[
+				"djangodbmodels",
+				"django/db/models/__init__.py"
+			],
 			[
 				"",
 				"LICENSE"

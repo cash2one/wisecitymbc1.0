@@ -1,5 +1,5 @@
 from django.db import models
-from django.dn.models.sql.query import Query
+from django.db.models.sql.query import Query
 from model_utils.managers import create_pass_through_manager_for_queryset_class
 
 # class MetaQ(models.Q):
@@ -50,4 +50,5 @@ def create_meta_table(model_class):
             return u"Meta for %s" % model_class.__name__
         
     model_class.objects = create_pass_through_manager_for_queryset_class(model_class.objects.__class__, _QuerySet)
+    model_class.meta_class = _Meta
     return _Meta
